@@ -1,4 +1,22 @@
+import { useEffect, useState } from "react";
+
+type Product = {
+  id: number;
+  name: string;
+  category: string;
+  quantity: number;
+  expirationDate: string;
+};
+
 function Home() {
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    fetch("http://localhost:3333/products")
+      .then((response) => response.json())
+      .then((data) => setProducts(data));
+  }, []);
+
   return (
     <main className="container">
       <section className="hero">
@@ -42,6 +60,21 @@ function Home() {
             e apoia decisões como promoção, doação ou descarte.
           </p>
         </article>
+      </section>
+
+      <section className="products-section">
+        <h2>Produtos cadastrados</h2>
+
+        <div className="products-list">
+          {products.map((product) => (
+            <article className="product-card" key={product.id}>
+              <h3>{product.name}</h3>
+              <p>Categorida: {product.category}</p>
+              <p>Quantidade: {product.quantity}</p>
+              <p>Validade: {product.expirationDate}</p>
+            </article>
+          ))}
+        </div>
       </section>
     </main>
   );
