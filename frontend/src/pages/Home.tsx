@@ -22,53 +22,20 @@ type DashboardData = {
   totalRiskValue: number;
 };
 
-function translateProductStatus(status: Product["status"]) {
-  const statusMap: Record<Product["status"], string> = {
-    expired: "Vencido",
-    critical: "Crítico",
-    attention: "Atenção",
-    safe: "Seguro",
-  };
+type FieldErrors = {
+  name: string;
+  category: string;
+  quantity: string;
+  unitCost: string;
+  expirationDate: string;
+};
 
-  return statusMap[status];
-}
-
-function getProductStatusClass(status: Product["status"]) {
-  const statusClassMap: Record<Product["status"], string> = {
-    expired: "status-badge expired",
-    critical: "status-badge critical",
-    attention: "status-badge attention",
-    safe: "status-badge safe",
-  };
-
-  return statusClassMap[status];
-}
-
-function formatDaysToExpire(daysToExpire: number) {
-  if (daysToExpire < 0) {
-    return `Vencido há ${Math.abs(daysToExpire)} dia(s)`;
-  }
-
-  if (daysToExpire === 0) {
-    return "Vence hoje";
-  }
-
-  return `Vence em ${daysToExpire} dia(s)`;
-}
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  }).format(value);
-}
-
-function Home() {
+export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(
     null,
   );
-
+  const [editingProductId, setEditingProductId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     category: "",
@@ -76,246 +43,379 @@ function Home() {
     unitCost: "",
     expirationDate: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [feedbackType, setFeedbackType] = useState<"success" | "error" | "">(
+    "",
+  );
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({
+    name: "",
+    category: "",
+    quantity: "",
+    unitCost: "",
+    expirationDate: "",
+  });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"" | Product["status"]>("");
+  const [sortOption, setSortOption] = useState<
+    "" | "name" | "quantity" | "expirationDate" | "riskValue"
+  >("");
+
+  useEffect(() => {
+    async function fetchData() {
+      await loadProducts();
+      await loadDashboardData();
+    }
+    fetchData();
+  }, []);
 
   async function loadProducts() {
-    const response = await fetch("http://localhost:3333/products");
-    const data = await response.json();
-
-    setProducts(data);
+    try {
+      const response = await fetch("http://localhost:3333/products");
+      if (!response.ok) throw new Error("Erro ao carregar produtos");
+      const data = await response.json();
+      setProducts(data);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   async function loadDashboardData() {
-    const response = await fetch("http://localhost:3333/dashboard");
-    const data = await response.json();
-
-    setDashboardData(data);
+    try {
+      const response = await fetch("http://localhost:3333/dashboard");
+      if (!response.ok) throw new Error("Erro ao carregar dashboard");
+      const data = await response.json();
+      setDashboardData(data);
+    } catch (error) {
+      console.error(error);
+    }
   }
-
-  useEffect(() => {
-    loadProducts();
-    loadDashboardData();
-  }, []);
 
   function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
     const { name, value } = event.target;
+    setFormData({ ...formData, [name]: value });
 
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+    if (fieldErrors[name as keyof FieldErrors]) {
+      setFieldErrors({ ...fieldErrors, [name]: "" });
+    }
   }
 
-  async function handleCreateProduct(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const response = await fetch("http://localhost:3333/products", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name: formData.name,
-        category: formData.category,
-        quantity: Number(formData.quantity),
-        unitCost: Number(formData.unitCost),
-        expirationDate: formData.expirationDate,
-      }),
-    });
-
-    if (!response.ok) {
-      alert("Não foi possível cadastrar o produto. Verifique os dados.");
-      return;
-    }
-
-    await response.json();
-
-    await loadProducts();
-    await loadDashboardData();
-
-    setFormData({
+  function validateForm() {
+    const errors: FieldErrors = {
       name: "",
       category: "",
       quantity: "",
       unitCost: "",
       expirationDate: "",
-    });
+    };
+    if (!formData.name.trim()) errors.name = "Nome é obrigatório";
+    if (!formData.category.trim()) errors.category = "Categoria é obrigatória";
+    if (!formData.quantity || Number(formData.quantity) <= 0)
+      errors.quantity = "Quantidade deve ser maior que zero";
+    if (!formData.unitCost || Number(formData.unitCost) <= 0)
+      errors.unitCost = "Custo unitário deve ser maior que zero";
+    if (!formData.expirationDate)
+      errors.expirationDate = "Data de validade é obrigatória";
+    setFieldErrors(errors);
+    return errors;
   }
+
+  async function handleSubmitProduct(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsSubmitting(true);
+    setFeedbackMessage("");
+    setFeedbackType("");
+
+    const errors = validateForm();
+    if (Object.values(errors).some((e) => e)) {
+      setFeedbackMessage("Corrija os erros antes de enviar.");
+      setFeedbackType("error");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (
+      new Date(formData.expirationDate) <
+      new Date(new Date().setHours(0, 0, 0, 0))
+    ) {
+      setFeedbackMessage("A data de validade não pode ser no passado.");
+      setFeedbackType("error");
+      setIsSubmitting(false);
+      return;
+    }
+
+    const method = editingProductId ? "PUT" : "POST";
+    const url = editingProductId
+      ? `http://localhost:3333/products/${editingProductId}`
+      : "http://localhost:3333/products";
+
+    try {
+      const response = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          category: formData.category,
+          quantity: Number(formData.quantity),
+          unitCost: Number(formData.unitCost),
+          expirationDate: formData.expirationDate,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Erro ao salvar o produto");
+
+      await response.json();
+      await loadProducts();
+      await loadDashboardData();
+
+      setFormData({
+        name: "",
+        category: "",
+        quantity: "",
+        unitCost: "",
+        expirationDate: "",
+      });
+      setEditingProductId(null);
+      setSearchQuery("");
+      setStatusFilter("");
+      setSortOption("");
+      setFeedbackMessage("Produto salvo com sucesso.");
+      setFeedbackType("success");
+      setFieldErrors({
+        name: "",
+        category: "",
+        quantity: "",
+        unitCost: "",
+        expirationDate: "",
+      });
+    } catch (error) {
+      console.error(error);
+      setFeedbackMessage("Não foi possível salvar o produto.");
+      setFeedbackType("error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  function confirmDelete(id: number) {
+    if (!window.confirm("Deseja realmente excluir este produto?")) return;
+    handleDeleteProduct(id);
+  }
+
+  async function handleDeleteProduct(id: number) {
+    try {
+      const response = await fetch(`http://localhost:3333/products/${id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Erro ao excluir produto");
+      await loadProducts();
+      await loadDashboardData();
+    } catch (error) {
+      console.error(error);
+      alert("Não foi possível excluir o produto.");
+    }
+  }
+
+  function handleEditProduct(product: Product) {
+    setFormData({
+      name: product.name,
+      category: product.category,
+      quantity: String(product.quantity),
+      unitCost: String(product.unitCost),
+      expirationDate: product.expirationDate,
+    });
+    setEditingProductId(product.id);
+  }
+
+  function translateProductStatus(status: Product["status"]) {
+    const statusMap = {
+      expired: "Vencido",
+      critical: "Crítico",
+      attention: "Atenção",
+      safe: "Seguro",
+    };
+    return statusMap[status] || status;
+  }
+
+  const displayedProducts = products
+    .filter((product) => {
+      const matchesSearch =
+        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.category.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesStatus = statusFilter
+        ? product.status === statusFilter
+        : true;
+      return matchesSearch && matchesStatus;
+    })
+    .sort((a, b) => {
+      if (sortOption === "name") return a.name.localeCompare(b.name);
+      if (sortOption === "quantity") return b.quantity - a.quantity;
+      if (sortOption === "expirationDate")
+        return (
+          new Date(a.expirationDate).getTime() -
+          new Date(b.expirationDate).getTime()
+        );
+      if (sortOption === "riskValue") return b.riskValue - a.riskValue;
+      return 0;
+    });
 
   return (
     <main className="container">
-      <section className="hero">
-        <span className="badge">Projeto Fullstack</span>
-
-        <h1>Sistema de Estoque</h1>
-
-        <p className="subtitle">
-          Controle de validade, lotes e prevenção de perdas para pequenos
-          comércios.
-        </p>
-
-        <div className="hero-actions">
-          <button>Entrar no Sistema</button>
-          <button className="secondary">Ver funcionalidades</button>
-        </div>
-      </section>
+      <h1>Sistema de Estoque</h1>
 
       {dashboardData && (
         <section className="dashboard-grid">
-          <article className="dashboard-card">
+          <div className="dashboard-card">
             <span>Total de produtos</span>
             <strong>{dashboardData.totalProducts}</strong>
-          </article>
-
-          <article className="dashboard-card">
-            <span>Vencidos</span>
+          </div>
+          <div className="dashboard-card highlight">
+            <span>Produtos vencidos</span>
             <strong>{dashboardData.expiredProducts}</strong>
-          </article>
-
-          <article className="dashboard-card">
-            <span>Críticos</span>
+          </div>
+          <div className="dashboard-card highlight">
+            <span>Produtos críticos</span>
             <strong>{dashboardData.criticalProducts}</strong>
-          </article>
-
-          <article className="dashboard-card">
-            <span>Em atenção</span>
+          </div>
+          <div className="dashboard-card highlight">
+            <span>Produtos em atenção</span>
             <strong>{dashboardData.attentionProducts}</strong>
-          </article>
-
-          <article className="dashboard-card">
-            <span>Seguros</span>
+          </div>
+          <div className="dashboard-card">
+            <span>Produtos seguros</span>
             <strong>{dashboardData.safeProducts}</strong>
-          </article>
-
-          <article className="dashboard-card highlight">
-            <span>Valor total em risco</span>
-            <strong>{formatCurrency(dashboardData.totalRiskValue)}</strong>
-          </article>
+          </div>
+          <div className="dashboard-card">
+            <span>Valor em risco</span>
+            <strong>R$ {dashboardData.totalRiskValue.toFixed(2)}</strong>
+          </div>
         </section>
       )}
 
-      <section className="cards">
-        <article className="card">
-          <h2>Problema</h2>
-          <p>
-            Pequenos comércios frequentemente perdem produtos por vencimento
-            devido à falta de controle sobre validade, lote e quantidade em
-            estoque.
-          </p>
-        </article>
-
-        <article className="card">
-          <h2>Solução</h2>
-          <p>
-            O sistema permite cadastrar produtos, monitorar datas de validade,
-            gerar alertas e visualizar indicadores para reduzir perdas
-            financeiras.
-          </p>
-        </article>
-
-        <article className="card">
-          <h2>Diferencial</h2>
-          <p>
-            Além do controle de estoque, a aplicação prioriza produtos em risco
-            e apoia decisões como promoção, doação ou descarte.
-          </p>
-        </article>
+      <section className="filter-section">
+        <input
+          type="text"
+          placeholder="Buscar por nome ou categoria"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+        <select
+          value={statusFilter}
+          onChange={(e) =>
+            setStatusFilter(e.target.value as Product["status"] | "")
+          }
+        >
+          <option value="">Todos</option>
+          <option value="expired">Vencido</option>
+          <option value="critical">Crítico</option>
+          <option value="attention">Atenção</option>
+          <option value="safe">Seguro</option>
+        </select>
+        <select
+          value={sortOption}
+          onChange={(e) =>
+            setSortOption(
+              e.target.value as
+                | ""
+                | "name"
+                | "quantity"
+                | "expirationDate"
+                | "riskValue",
+            )
+          }
+        >
+          <option value="">Padrão</option>
+          <option value="name">Nome (A-Z)</option>
+          <option value="quantity">Quantidade (maior → menor)</option>
+          <option value="expirationDate">Validade (mais próxima)</option>
+          <option value="riskValue">Valor em risco (maior → menor)</option>
+        </select>
       </section>
 
-      <section className="form-section">
-        <h2>Cadastrar produto</h2>
+      <form onSubmit={handleSubmitProduct}>
+        <input
+          name="name"
+          type="text"
+          placeholder="Nome do produto"
+          value={formData.name}
+          onChange={handleInputChange}
+        />
+        {fieldErrors.name && <span className="error">{fieldErrors.name}</span>}
+        <input
+          name="category"
+          type="text"
+          placeholder="Categoria"
+          value={formData.category}
+          onChange={handleInputChange}
+        />
+        {fieldErrors.category && (
+          <span className="error">{fieldErrors.category}</span>
+        )}
+        <input
+          name="quantity"
+          type="number"
+          placeholder="Quantidade"
+          value={formData.quantity}
+          onChange={handleInputChange}
+        />
+        {fieldErrors.quantity && (
+          <span className="error">{fieldErrors.quantity}</span>
+        )}
+        <input
+          name="unitCost"
+          type="number"
+          placeholder="Custo unitário"
+          step="0.01"
+          value={formData.unitCost}
+          onChange={handleInputChange}
+        />
+        {fieldErrors.unitCost && (
+          <span className="error">{fieldErrors.unitCost}</span>
+        )}
+        <input
+          name="expirationDate"
+          type="date"
+          value={formData.expirationDate}
+          onChange={handleInputChange}
+        />
+        {fieldErrors.expirationDate && (
+          <span className="error">{fieldErrors.expirationDate}</span>
+        )}
+        <button type="submit" disabled={isSubmitting}>
+          {isSubmitting
+            ? editingProductId
+              ? "Salvando..."
+              : "Cadastrando..."
+            : editingProductId
+              ? "Salvar alterações"
+              : "Cadastrar produto"}
+        </button>
+      </form>
 
-        <form className="product-form" onSubmit={handleCreateProduct}>
-          <div className="form-group">
-            <label htmlFor="name">Nome do produto</label>
-            <input
-              id="name"
-              name="name"
-              type="text"
-              placeholder="Ex: Leite Integral"
-              value={formData.name}
-              onChange={handleInputChange}
-            />
-          </div>
+      {feedbackMessage && (
+        <p className={`feedback-message ${feedbackType}`}>{feedbackMessage}</p>
+      )}
 
-          <div className="form-group">
-            <label htmlFor="category">Categoria</label>
-            <input
-              id="category"
-              name="category"
-              type="text"
-              placeholder="Ex: Laticínios"
-              value={formData.category}
-              onChange={handleInputChange}
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="quantity">Quantidade</label>
-            <input
-              id="quantity"
-              name="quantity"
-              type="number"
-              placeholder="Ex: 20"
-              value={formData.quantity}
-              onChange={handleInputChange}
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="unitCost">Custo unitário</label>
-            <input
-              id="unitCost"
-              name="unitCost"
-              type="number"
-              step="0.01"
-              placeholder="Ex: 4.50"
-              value={formData.unitCost}
-              onChange={handleInputChange}
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="expirationDate">Data de validade</label>
-            <input
-              id="expirationDate"
-              name="expirationDate"
-              type="date"
-              value={formData.expirationDate}
-              onChange={handleInputChange}
-            />
-          </div>
-
-          <button type="submit">Cadastrar produto</button>
-        </form>
-      </section>
-
-      <section className="products-section">
-        <h2>Produtos cadastrados</h2>
-
-        <div className="products-list">
-          {products.map((product) => (
-            <article className="product-card" key={product.id}>
-              <h3>{product.name}</h3>
-              <p>Categoria: {product.category}</p>
-              <p>Quantidade: {product.quantity}</p>
-              <p>Custo unitário: {formatCurrency(product.unitCost)}</p>
-              <p>Valor em risco: {formatCurrency(product.riskValue)}</p>
-              <p>Validade: {product.expirationDate}</p>
-
-              <p>
-                Status:{" "}
-                <span className={getProductStatusClass(product.status)}>
-                  {translateProductStatus(product.status)}
-                </span>
-              </p>
-
-              <p>{formatDaysToExpire(product.daysToExpire)}</p>
-            </article>
-          ))}
-        </div>
+      <section className="products-list">
+        {displayedProducts.map((product) => (
+          <article key={product.id} className="product-card">
+            <h3>{product.name}</h3>
+            <p>{product.category}</p>
+            <p>Qtd: {product.quantity}</p>
+            <p>Preço: {product.unitCost}</p>
+            <p>Validade: {product.expirationDate}</p>
+            <p>Status: {translateProductStatus(product.status)}</p>
+            <div className="product-actions">
+              <button type="button" onClick={() => handleEditProduct(product)}>
+                Editar
+              </button>
+              <button type="button" onClick={() => confirmDelete(product.id)}>
+                Excluir
+              </button>
+            </div>
+          </article>
+        ))}
       </section>
     </main>
   );
 }
-
-export default Home;
