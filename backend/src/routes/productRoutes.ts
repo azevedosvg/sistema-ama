@@ -1,33 +1,23 @@
 import { Router } from "express";
+import { products } from "../data/products";
+import { Product } from "../types/product";
+import { getProductStatus } from "../utils/getProductStatus";
+import { getDaysToExpire } from "../utils/getDaysToExpire";
+import { calculateRiskValue } from "../utils/calculateRiskValue";
 
 const productRoutes = Router();
 
-const products = [
-  {
-    id: 1,
-    name: "Leite Integral",
-    category: "Laticínios",
-    quantity: 20,
-    expirationDate: "2026-06-10",
-  },
-  {
-    id: 2,
-    name: "Pão de Forma",
-    category: "Padaria",
-    quantity: 12,
-    expirationDate: "2026-05-28",
-  },
-  {
-    id: 3,
-    name: "Iogurte Natural",
-    category: "Laticínios",
-    quantity: 8,
-    expirationDate: "2026-05-24",
-  },
-];
+productRoutes.get("/products", (_request, response) => {
+  const productsWithStatus = products.map((product) => {
+    return {
+      ...product,
+      status: getProductStatus(product.expirationDate),
+      daysToExpire: getDaysToExpire(product.expirationDate),
+      riskValue: calculateRiskValue(product.quantity, product.unitCost),
+    };
+  });
 
-productRoutes.get("/products", (request, response) => {
-  return response.json(products);
+  return response.json(productsWithStatus);
 });
 
 productRoutes.get("/products/:id", (request, response) => {
@@ -41,12 +31,16 @@ productRoutes.get("/products/:id", (request, response) => {
     });
   }
 
-  return response.json(product);
+  return response.json({
+    ...product,
+    status: getProductStatus(product.expirationDate),
+    daysToExpire: getDaysToExpire(product.expirationDate),
+    riskValue: calculateRiskValue(product.quantity, product.unitCost),
+  });
 });
 
 productRoutes.post("/products", (request, response) => {
-  const { name, category, quantity, expirationDate } = request.body;
-
+  const { name, category, quantity, unitCost, expirationDate } = request.body;
   if (!name) {
     return response.status(400).json({
       message: "Product name is required",
@@ -71,11 +65,18 @@ productRoutes.post("/products", (request, response) => {
     });
   }
 
-  const newProduct = {
+  if (!unitCost || unitCost <= 0) {
+    return response.status(400).json({
+      message: "Product unit cost must be greater than zero",
+    });
+  }
+
+  const newProduct: Product = {
     id: products.length + 1,
     name,
     category,
     quantity,
+    unitCost,
     expirationDate,
   };
 
@@ -86,8 +87,7 @@ productRoutes.post("/products", (request, response) => {
 
 productRoutes.put("/products/:id", (request, response) => {
   const { id } = request.params;
-  const { name, category, quantity, expirationDate } = request.body;
-
+  const { name, category, quantity, unitCost, expirationDate } = request.body;
   const productIndex = products.findIndex(
     (product) => product.id === Number(id),
   );
@@ -116,17 +116,24 @@ productRoutes.put("/products/:id", (request, response) => {
     });
   }
 
+  if (!unitCost || unitCost <= 0) {
+    return response.status(400).json({
+      message: "Product unit cost must be greater than zero",
+    });
+  }
+
   if (!expirationDate) {
     return response.status(400).json({
       message: "Product expiration date is required",
     });
   }
 
-  const updatedProduct = {
+  const updatedProduct: Product = {
     id: Number(id),
     name,
     category,
     quantity,
+    unitCost,
     expirationDate,
   };
 

@@ -5,8 +5,53 @@ type Product = {
   name: string;
   category: string;
   quantity: number;
+  unitCost: number;
   expirationDate: string;
+  status: "expired" | "critical" | "attention" | "safe";
+  daysToExpire: number;
+  riskValue: number;
 };
+
+function translateProductStatus(status: Product["status"]) {
+  const statusMap: Record<Product["status"], string> = {
+    expired: "Vencido",
+    critical: "Crítico",
+    attention: "Atenção",
+    safe: "Seguro",
+  };
+
+  return statusMap[status];
+}
+
+function getProductStatusClass(status: Product["status"]) {
+  const statusClassMap: Record<Product["status"], string> = {
+    expired: "status-badge expired",
+    critical: "status-badge critical",
+    attention: "status-badge attention",
+    safe: "status-badge safe",
+  };
+
+  return statusClassMap[status];
+}
+
+function formatDaysToExpire(daysToExpire: number) {
+  if (daysToExpire < 0) {
+    return `Vencido há ${Math.abs(daysToExpire)} dia(s)`;
+  }
+
+  if (daysToExpire === 0) {
+    return "Vence hoje";
+  }
+
+  return `Vence em ${daysToExpire} dia(s)`;
+}
+
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(value);
+}
 
 function Home() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -69,9 +114,20 @@ function Home() {
           {products.map((product) => (
             <article className="product-card" key={product.id}>
               <h3>{product.name}</h3>
-              <p>Categorida: {product.category}</p>
+              <p>Categoria: {product.category}</p>
               <p>Quantidade: {product.quantity}</p>
+              <p>Custo unitário: {formatCurrency(product.unitCost)}</p>
+              <p>Valor em risco: {formatCurrency(product.riskValue)}</p>
               <p>Validade: {product.expirationDate}</p>
+
+              <p>
+                Status:{" "}
+                <span className={getProductStatusClass(product.status)}>
+                  {translateProductStatus(product.status)}
+                </span>
+              </p>
+
+              <p>{formatDaysToExpire(product.daysToExpire)}</p>
             </article>
           ))}
         </div>
