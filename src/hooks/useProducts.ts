@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import type { DashboardData, FieldErrors, FormData, Product } from "../types/product";
-import { calcDashboard } from "../lib/productUtils";
+import { calcDashboard, isPerishable } from "../lib/productUtils";
 import { createProduct, deleteProduct, getProducts, updateProduct } from "../lib/storage";
 
 const EMPTY_FORM: FormData = {
@@ -21,6 +21,8 @@ const EMPTY_ERRORS: FieldErrors = {
   expirationDate: "",
 };
 
+const PAGE_SIZE = 6;
+
 export function useProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
@@ -36,10 +38,16 @@ export function useProducts() {
   const [sortOption, setSortOption] = useState<
     "" | "name" | "quantity" | "expirationDate" | "riskValue"
   >("");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   useEffect(() => {
     refresh();
   }, []);
+
+  // Reinicia a paginação sempre que os filtros ou a ordenação mudam.
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [searchQuery, statusFilter, categoryFilter, sortOption]);
 
   function refresh() {
     const all = getProducts();
@@ -54,7 +62,11 @@ export function useProducts() {
       setFormData((prev) => ({ ...prev, [name]: checked, unitCost: checked ? "" : prev.unitCost }));
       return;
     }
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => {
+      const next = { ...prev, [name]: value };
+      if (name === "category" && !isPerishable(value)) next.expirationDate = "";
+      return next;
+    });
     if (fieldErrors[name as keyof FieldErrors]) {
       setFieldErrors((prev) => ({ ...prev, [name]: "" }));
     }
@@ -68,7 +80,7 @@ export function useProducts() {
       errors.quantity = "Quantidade deve ser maior que zero";
     if (!formData.isDonation && (!formData.unitCost || Number(formData.unitCost) <= 0))
       errors.unitCost = "Custo unitário deve ser maior que zero";
-    if (!formData.expirationDate)
+    if (isPerishable(formData.category) && !formData.expirationDate)
       errors.expirationDate = "Data de validade é obrigatória";
     setFieldErrors(errors);
     return errors;
@@ -147,11 +159,21 @@ export function useProducts() {
     .sort((a, b) => {
       if (sortOption === "name") return a.name.localeCompare(b.name);
       if (sortOption === "quantity") return b.quantity - a.quantity;
-      if (sortOption === "expirationDate")
-        return new Date(a.expirationDate).getTime() - new Date(b.expirationDate).getTime();
+      if (sortOption === "expirationDate") {
+        const aTime = a.expirationDate ? new Date(a.expirationDate).getTime() : Infinity;
+        const bTime = b.expirationDate ? new Date(b.expirationDate).getTime() : Infinity;
+        return aTime - bTime;
+      }
       if (sortOption === "riskValue") return b.riskValue - a.riskValue;
       return 0;
     });
+
+  const visibleProducts = displayedProducts.slice(0, visibleCount);
+  const hasMore = displayedProducts.length > visibleCount;
+
+  function showMore() {
+    setVisibleCount((prev) => prev + PAGE_SIZE);
+  }
 
   return {
     dashboardData,
@@ -166,6 +188,9 @@ export function useProducts() {
     categoryFilter,
     sortOption,
     displayedProducts,
+    visibleProducts,
+    hasMore,
+    showMore,
     setSearchQuery,
     setStatusFilter,
     setCategoryFilter,

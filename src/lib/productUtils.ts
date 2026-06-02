@@ -2,7 +2,19 @@ import type { Product } from "../types/product";
 
 type StoredProduct = Omit<Product, "status" | "daysToExpire" | "riskValue">;
 
+export const PERISHABLE_CATEGORIES = new Set([
+  "Alimentos",
+  "Bebidas",
+  "Higiene e Limpeza",
+  "Medicamentos",
+]);
+
+export function isPerishable(category: string): boolean {
+  return PERISHABLE_CATEGORIES.has(category);
+}
+
 export function getDaysToExpire(expirationDate: string): number {
+  if (!expirationDate) return Infinity;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const expiry = new Date(expirationDate + "T00:00:00");
@@ -10,6 +22,7 @@ export function getDaysToExpire(expirationDate: string): number {
 }
 
 export function getProductStatus(expirationDate: string): Product["status"] {
+  if (!expirationDate) return "safe";
   const days = getDaysToExpire(expirationDate);
   if (days < 0) return "expired";
   if (days <= 7) return "critical";
@@ -18,13 +31,16 @@ export function getProductStatus(expirationDate: string): Product["status"] {
 }
 
 export function enrich(p: StoredProduct): Product {
+  const status = getProductStatus(p.expirationDate);
+  const atRisk = status === "expired" || status === "critical";
   return {
     ...p,
-    status: getProductStatus(p.expirationDate),
+    status,
     daysToExpire: getDaysToExpire(p.expirationDate),
-    riskValue: p.isDonation ? 0 : p.quantity * p.unitCost,
+    riskValue: p.isDonation || !atRisk ? 0 : p.quantity * p.unitCost,
   };
 }
+
 
 export function calcDashboard(products: Product[]) {
   return {

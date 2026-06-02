@@ -20,6 +20,7 @@ export type DashboardData = {
   totalRiskValue: number;
 };
 
+
 export type FieldErrors = {
   name: string;
   category: string;

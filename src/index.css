@@ -12,4 +12,11 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
   }
+
+  /* Hide the browser's native password reveal icon (Edge/IE) so only
+     the custom show/hide button is shown. */
+  input::-ms-reveal,
+  input::-ms-clear {
+    display: none;
+  }
 }

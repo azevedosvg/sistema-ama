@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle2, Gift, XCircle } from "lucide-react";
 import type { ChangeEvent, FormEvent } from "react";
+import { isPerishable } from "../lib/productUtils";
 import type { FieldErrors, FormData } from "../types/product";
 
 export const CATEGORIES = [
@@ -158,15 +159,27 @@ export default function ProductForm({
             )}
           </AnimatePresence>
 
-          <Field label="Data de validade" error={fieldErrors.expirationDate}>
-            <input
-              name="expirationDate"
-              type="date"
-              value={formData.expirationDate}
-              onChange={onInputChange}
-              className={fieldErrors.expirationDate ? errorInputClass : inputClass}
-            />
-          </Field>
+          <AnimatePresence mode="wait">
+            {isPerishable(formData.category) && (
+              <motion.div
+                key="expirationDate"
+                initial={{ opacity: 0, width: 0 }}
+                animate={{ opacity: 1, width: "auto" }}
+                exit={{ opacity: 0, width: 0 }}
+                className="overflow-hidden"
+              >
+                <Field label="Data de validade" error={fieldErrors.expirationDate}>
+                  <input
+                    name="expirationDate"
+                    type="date"
+                    value={formData.expirationDate}
+                    onChange={onInputChange}
+                    className={fieldErrors.expirationDate ? errorInputClass : inputClass}
+                  />
+                </Field>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         <div className="flex justify-end">

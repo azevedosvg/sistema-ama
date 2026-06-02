@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AMA — Arquitetura de Produção</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy:  #060d1f;
+      --n2:    #0a1628;
+      --amber: #fbbf24;
+      --b7:    #1d4ed8;
+      --b5:    #3b82f6;
+      --b4:    #60a5fa;
+      --b3:    #93c5fd;
+      --radius: 16px;
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      background: var(--navy);
+      overflow: hidden;
+      height: 100vh; width: 100vw;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ══════════════════════════════════════
+       DECK & TRANSITIONS
+    ══════════════════════════════════════ */
+    .deck { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
+
+    .slide {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      opacity: 0;
+      transform: translateX(52px) scale(0.978);
+      transition: opacity .5s var(--ease), transform .5s var(--ease);
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .slide.active { opacity: 1; transform: none; pointer-events: all; }
+    .slide.out    { opacity: 0; transform: translateX(-52px) scale(0.978); }
+
+    /* ══════════════════════════════════════
+       DARK BACKGROUNDS — cada slide tem
+       gradiente radial ligeiramente diferente
+    ══════════════════════════════════════ */
+    .slide { background: radial-gradient(ellipse 100% 120% at 80% 10%, #1e3a8a 0%, #060d1f 68%); }
+    .s1  { background: radial-gradient(ellipse 80%  90%  at 70% 40%, #1e40af 0%, #060d1f 65%); }
+    .s2  { background: radial-gradient(ellipse 120% 80%  at 12% 88%, #1e3a8a 0%, #060d1f 62%); }
+    .s3  { background: radial-gradient(ellipse 100% 110% at 55% -5%, #1e3a8a 0%, #060d1f 58%); }
+    .s4  { background: radial-gradient(ellipse 90%  110% at 90% 18%, #1e40af 0%, #0a1628 68%); }
+    .s5  { background: radial-gradient(ellipse 100% 120% at 80% 10%, #1a3a8f 0%, #0a1628 70%); }
+    .s6  { background: radial-gradient(ellipse 110% 80%  at 8%  92%, #1e40af 0%, #060d1f 60%); }
+    .s7  { background: radial-gradient(ellipse 80%  110% at 76% 28%, #1e40af 0%, #060d1f 65%); }
+    .s8  { background: radial-gradient(ellipse 120% 70%  at 28% 112%,#1e40af 0%, #060d1f 58%); }
+    .s9  { background: radial-gradient(ellipse 90%  90%  at 10% 10%, #1e3a8a 0%, #060d1f 60%); }
+    .s10 { background: radial-gradient(ellipse 80%  90%  at 30% 60%, #1a3a8f 0%, #060d1f 65%); }
+
+    /* ══════════════════════════════════════
+       PROGRESS BAR
+    ══════════════════════════════════════ */
+    #bar {
+      position: fixed; top: 0; left: 0; height: 3px; z-index: 200;
+      background: linear-gradient(90deg, var(--amber), #f97316);
+      border-radius: 0 2px 2px 0;
+      transition: width .45s var(--ease);
+      box-shadow: 0 0 10px rgba(251,191,36,.45);
+    }
+
+    /* ══════════════════════════════════════
+       NAV
+    ══════════════════════════════════════ */
+    .nav {
+      position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 14px;
+      background: rgba(6,13,31,.82);
+      backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 50px; padding: 9px 18px;
+      box-shadow: 0 12px 40px rgba(0,0,0,.5), 0 2px 8px rgba(0,0,0,.3);
+      z-index: 100;
+    }
+    .nb {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+      color: rgba(255,255,255,.7); font-size: 16px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .18s, color .18s;
+    }
+    .nb:hover:not(:disabled) { background: rgba(255,255,255,.14); color: #fff; }
+    .nb:disabled { opacity: .28; cursor: not-allowed; }
+    .dots { display: flex; gap: 5px; }
+    .dot { height: 6px; width: 6px; border-radius: 3px; background: rgba(255,255,255,.22); cursor: pointer; transition: background .25s, width .28s var(--ease); }
+    .dot.on { background: var(--amber); width: 20px; }
+    .ncnt { font-size: 12px; font-weight: 600; color: rgba(255,255,255,.38); min-width: 42px; text-align: center; }
+
+    /* ══════════════════════════════════════
+       CORNER BUTTON
+    ══════════════════════════════════════ */
+    .corner {
+      position: fixed; top: 16px; right: 18px; z-index: 200;
+    }
+    .ctool {
+      background: rgba(6,13,31,.72); backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,.1); color: rgba(255,255,255,.45);
+      font-size: 11px; padding: 5px 12px; border-radius: 8px;
+      cursor: pointer; transition: color .18s;
+    }
+    .ctool:hover { color: #fff; }
+
+    /* ══════════════════════════════════════
+       SECTION HEADER (compartilhado)
+    ══════════════════════════════════════ */
+    .sh { display: flex; align-items: flex-start; gap: 0; margin-bottom: 26px; flex-shrink: 0; }
+    .shb { width: 4px; min-height: 46px; border-radius: 2px; margin-right: 16px; background: var(--amber); flex-shrink: 0; }
+    .sh h2 { font-size: clamp(19px, 2vw, 28px); font-weight: 800; letter-spacing: -.5px; color: #fff; }
+    .sh p  { font-size: 13px; color: rgba(255,255,255,.42); margin-top: 3px; }
+
+    /* ══════════════════════════════════════
+       GLASS CARDS (sistema de variantes)
+    ══════════════════════════════════════ */
+    .gc {
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: var(--radius);
+      transition: background .2s;
+    }
+    .gc:hover { background: rgba(255,255,255,.09); }
+
+    .gc-g  { background: rgba(16,185,129,.08); border: 1px solid rgba(52,211,153,.22); border-radius: var(--radius); }
+    .gc-a  { background: rgba(251,191,36,.08); border: 1px solid rgba(251,191,36,.25); border-radius: var(--radius); }
+    .gc-b  { background: rgba(59,130,246,.08); border: 1px solid rgba(96,165,250,.22); border-radius: var(--radius); }
+    .gc-p  { background: rgba(124,58,237,.09); border: 1px solid rgba(167,139,250,.25); border-radius: var(--radius); }
+    .gc-c  { background: rgba(8,145,178,.09);  border: 1px solid rgba(103,232,249,.25); border-radius: var(--radius); }
+    .gc-r  { background: rgba(239,68,68,.07);  border: 1px solid rgba(248,113,113,.2);  border-radius: var(--radius); }
+
+    /* ══════════════════════════════════════
+       BADGES (dark)
+    ══════════════════════════════════════ */
+    .bdg { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 99px; }
+    .bdg-g { background: rgba(52,211,153,.15); color: #34d399; border: 1px solid rgba(52,211,153,.2); }
+    .bdg-a { background: rgba(251,191,36,.15); color: #fbbf24; border: 1px solid rgba(251,191,36,.2); }
+    .bdg-b { background: rgba(96,165,250,.15); color: #93c5fd; border: 1px solid rgba(96,165,250,.2); }
+
+    /* ══════════════════════════════════════
+       SLIDE 1 — CAPA
+    ══════════════════════════════════════ */
+    .s1 { align-items: center; justify-content: center; text-align: center; gap: 24px; }
+    .s1::before {
+      content: ''; position: absolute;
+      width: 640px; height: 640px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(59,130,246,.18) 0%, transparent 70%);
+      top: -180px; right: -100px; pointer-events: none;
+    }
+    .s1::after {
+      content: ''; position: absolute;
+      width: 380px; height: 380px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(251,191,36,.1) 0%, transparent 70%);
+      bottom: 20px; left: 6%; pointer-events: none;
+    }
+    .rings { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+    .rg { position: absolute; border-radius: 50%; border: 1px solid rgba(255,255,255,.045); }
+    .rg1 { width: 520px; height: 520px; top: -160px; right: -130px; }
+    .rg2 { width: 820px; height: 820px; top: -360px; right: -330px; }
+    .rg3 { width: 280px; height: 280px; bottom: -80px;  left:  6%; border-color: rgba(251,191,36,.055); }
+    .rg4 { width: 480px; height: 480px; bottom: -240px; left: -80px; border-color: rgba(251,191,36,.03); }
+
+    .c-emoji { font-size: 64px; line-height: 1; position: relative; z-index: 1; }
+    .c-title {
+      font-size: clamp(40px, 5.5vw, 68px); font-weight: 900;
+      letter-spacing: -2px; line-height: 1.06;
+      background: linear-gradient(135deg, #fff 30%, var(--b4) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; position: relative; z-index: 1;
+    }
+    .c-bar  { width: 52px; height: 4px; background: var(--amber); border-radius: 2px; margin: 0 auto; position: relative; z-index: 1; }
+    .c-sub  { font-size: clamp(13px, 1.3vw, 16px); color: rgba(255,255,255,.55); max-width: 500px; line-height: 1.7; position: relative; z-index: 1; }
+    .c-tags { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; position: relative; z-index: 1; }
+    .ctag   { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.12); color: rgba(255,255,255,.68); font-size: 11px; font-weight: 600; padding: 5px 14px; border-radius: 99px; }
+
+    /* ══════════════════════════════════════
+       SLIDE 2 — COMPARATIVO
+    ══════════════════════════════════════ */
+    .s2 { padding: 44px 56px 80px; }
+    .cmp-body { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 60px 1fr; align-items: stretch; }
+
+    .cc { padding: 26px 30px; display: flex; flex-direction: column; gap: 9px; }
+    .cc-head { display: flex; align-items: center; gap: 12px; padding-bottom: 14px; margin-bottom: 4px; }
+    .cc-cur .cc-head { border-bottom: 1px solid rgba(248,113,113,.15); }
+    .cc-tgt .cc-head { border-bottom: 1px solid rgba(52,211,153,.2); }
+    .cc-icon { font-size: 28px; }
+    .cc h3  { font-size: 15px; font-weight: 700; }
+    .cc-cur h3 { color: rgba(255,255,255,.7); }
+    .cc-tgt h3 { color: #34d399; }
+    .clist { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .clist li { font-size: 13.5px; display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; color: rgba(255,255,255,.6); }
+    .ok { color: #34d399; font-weight: 700; flex-shrink: 0; }
+    .no { color: #f87171; font-weight: 700; flex-shrink: 0; }
+
+    .carr { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+    .carr-line { width: 1px; flex: 1; background: linear-gradient(to bottom, transparent, rgba(255,255,255,.15), transparent); }
+    .carr-icon { font-size: 24px; color: rgba(255,255,255,.35); }
+    .carr-lbl  { font-size: 9px; font-weight: 700; color: rgba(255,255,255,.25); writing-mode: vertical-rl; letter-spacing: .8px; text-transform: uppercase; }
+
+    /* ══════════════════════════════════════
+       SLIDE 3 — DIAGRAMA
+    ══════════════════════════════════════ */
+    .s3 { padding: 36px 48px 80px; }
+    .dia-wrap {
+      flex: 1; min-height: 0;
+      background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08);
+      border-radius: var(--radius); overflow: hidden;
+      display: flex; align-items: center; justify-content: center; padding: 6px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+    }
+    .dia-wrap svg { max-height: calc(100vh - 200px); width: 100%; height: auto; display: block; }
+
+    /* ══════════════════════════════════════
+       SLIDE 4 — FRONTEND  (comp-layout base)
+    ══════════════════════════════════════ */
+    .s4, .s5, .s6, .s7, .s8, .s9 { padding: 44px 56px 80px; }
+
+    .comp-layout { flex: 1; min-height: 0; display: grid; grid-template-columns: 292px 1fr; gap: 20px; }
+    .comp-main   { border-radius: var(--radius); padding: 26px 24px; display: flex; flex-direction: column; gap: 16px; }
+    .comp-emoji  { font-size: 46px; line-height: 1; }
+    .comp-name   { font-size: 20px; font-weight: 800; letter-spacing: -.4px; color: #fff; }
+    .comp-svc    { font-size: 12px; font-weight: 500; margin-top: 2px; }
+
+    .comp-meta   { margin-top: auto; padding-top: 14px; display: flex; flex-direction: column; gap: 7px; }
+    .sep         { height: 1px; background: rgba(255,255,255,.08); margin-bottom: 2px; }
+    .mrow        { display: flex; justify-content: space-between; font-size: 12.5px; }
+    .mrow .ml    { color: rgba(255,255,255,.35); }
+    .mrow .mv    { font-weight: 700; color: rgba(255,255,255,.8); }
+    .mrow .mv-g  { font-weight: 700; color: #34d399; }
+    .mrow .mv-b  { font-weight: 700; color: var(--b4); }
+
+    .comp-right  { display: flex; flex-direction: column; gap: 12px; }
+    .icard       { padding: 18px 22px; display: flex; flex-direction: column; gap: 9px; flex: 1; }
+    .icard h4    { font-size: 13px; font-weight: 700; color: rgba(255,255,255,.85); }
+    .icard p     { font-size: 13px; color: rgba(255,255,255,.5); line-height: 1.65; }
+    .icard ul    { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .icard ul li { font-size: 13px; color: var(--b3); line-height: 1.5; display: flex; gap: 8px; }
+    .icard ul li::before { content: '▸'; color: rgba(255,255,255,.25); flex-shrink: 0; font-size: 10px; margin-top: 2px; }
+
+    .callout { border-radius: 0 12px 12px 0; padding: 13px 16px; font-size: 13px; line-height: 1.65; }
+    .cl-b { background: rgba(59,130,246,.1); border-left: 3px solid var(--b5); color: #93c5fd; }
+    .cl-a { background: rgba(251,191,36,.1); border-left: 3px solid var(--amber); color: #fcd34d; }
+    .cl-g { background: rgba(52,211,153,.08); border-left: 3px solid #34d399; color: #6ee7b7; }
+
+    /* ══════════════════════════════════════
+       SLIDE 5 — BACKEND (bk-grid)
+    ══════════════════════════════════════ */
+    .bk-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .bk-card { padding: 22px 24px; display: flex; flex-direction: column; gap: 10px; }
+    .bk-card h3 { font-size: 16px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 9px; }
+    .bk-card p  { font-size: 13px; color: rgba(255,255,255,.45); line-height: 1.6; }
+    .bk-card ul { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+    .bk-card ul li { font-size: 13px; color: var(--b3); display: flex; gap: 8px; line-height: 1.5; }
+    .bk-card ul li::before { content: '→'; color: rgba(255,255,255,.2); flex-shrink: 0; }
+    .bk-note { font-size: 11.5px; margin-top: auto; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.07); color: var(--amber); }
+
+    /* ══════════════════════════════════════
+       SLIDE 6 — INFRA (3 colunas)
+    ══════════════════════════════════════ */
+    .infra-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .ifcard { padding: 24px 26px; display: flex; flex-direction: column; gap: 11px; }
+
+    .ifcard h3 { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 9px; }
+    .if-name   { font-size: 26px; font-weight: 900; letter-spacing: -.5px; }
+    .if-svc    { font-size: 12.5px; font-weight: 500; margin-top: -6px; }
+    .ifcard p  { font-size: 13px; line-height: 1.6; }
+    .ifcard ul { list-style: none; display: flex; flex-direction: column; gap: 7px; }
+    .ifcard ul li { font-size: 13px; display: flex; gap: 7px; line-height: 1.5; }
+    .ifcard ul li::before { content: '•'; font-weight: 700; flex-shrink: 0; }
+    .if-foot { margin-top: auto; font-size: 11.5px; font-weight: 600; padding: 8px 12px; border-radius: 8px; }
+
+    /* DB — purple */
+    .if-db h3, .if-db .if-name { color: #c4b5fd; }
+    .if-db .if-svc, .if-db p   { color: rgba(196,181,253,.65); }
+    .if-db ul li, .if-db ul li::before { color: rgba(196,181,253,.7); }
+    .if-db .if-foot { background: rgba(124,58,237,.12); color: #c4b5fd; }
+
+    /* Cache — cyan */
+    .if-cache h3, .if-cache .if-name { color: #67e8f9; }
+    .if-cache .if-svc, .if-cache p   { color: rgba(103,232,249,.65); }
+    .if-cache ul li, .if-cache ul li::before { color: rgba(103,232,249,.7); }
+    .if-cache .if-foot { background: rgba(8,145,178,.12); color: #67e8f9; }
+
+    /* Email — green */
+    .if-email h3, .if-email .if-name { color: #6ee7b7; }
+    .if-email .if-svc, .if-email p   { color: rgba(110,231,183,.65); }
+    .if-email ul li, .if-email ul li::before { color: rgba(110,231,183,.7); }
+    .if-email .if-foot { background: rgba(16,185,129,.1); color: #6ee7b7; }
+
+    /* ══════════════════════════════════════
+       SLIDE 7 — CÓDIGO DE BARRAS
+    ══════════════════════════════════════ */
+    .bc-layout { flex: 1; min-height: 0; display: grid; grid-template-columns: 260px 1fr; gap: 20px; }
+    .bc-left   { padding: 26px 22px; display: flex; flex-direction: column; gap: 14px; }
+    .bc-left h3 { font-size: 18px; font-weight: 800; color: #fbbf24; letter-spacing: -.3px; }
+    .bc-left p  { font-size: 13px; color: rgba(251,191,36,.7); line-height: 1.65; }
+    .bc-chip    { background: rgba(251,191,36,.07); border-radius: 10px; padding: 12px 14px; }
+    .bc-chip div { font-size: 13px; color: rgba(251,191,36,.75); line-height: 1.8; }
+    .bc-tag     { font-size: 11.5px; font-weight: 700; color: #fbbf24; background: rgba(251,191,36,.1); border-radius: 8px; padding: 8px 12px; }
+
+    .bc-right { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 12px; }
+    .bc-card  { padding: 18px 20px; }
+    .bc-card h4 { font-size: 13px; font-weight: 700; color: #fbbf24; margin-bottom: 8px; }
+    .bc-card p  { font-size: 13px; color: rgba(251,191,36,.65); line-height: 1.6; }
+    .bc-card ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .bc-card ul li { font-size: 13px; color: rgba(251,191,36,.65); display: flex; gap: 7px; line-height: 1.5; }
+    .bc-card ul li::before { content: '→'; color: var(--amber); flex-shrink: 0; }
+    .bc-wide { grid-column: 1 / -1; }
+    .bc-hl { background: rgba(251,191,36,.08); border-radius: 10px; padding: 12px 14px; font-size: 13px; color: rgba(251,191,36,.8); line-height: 1.65; }
+
+    /* ══════════════════════════════════════
+       SLIDE 8 — CUSTOS
+    ══════════════════════════════════════ */
+    .cost-wrap { flex: 1; min-height: 0; border-radius: var(--radius); overflow: hidden; border: 1px solid rgba(255,255,255,.09); }
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: rgba(29,78,216,.35); }
+    th { padding: 14px 22px; text-align: left; font-size: 11px; font-weight: 700; color: rgba(255,255,255,.8); text-transform: uppercase; letter-spacing: .5px; }
+    td { padding: 13px 22px; font-size: 13.5px; color: rgba(255,255,255,.65); border-bottom: 1px solid rgba(255,255,255,.055); vertical-align: middle; }
+    tr:hover td { background: rgba(255,255,255,.03); }
+    .total td { background: rgba(96,165,250,.1) !important; color: #93c5fd; font-weight: 700; font-size: 15px; border: none; }
+    .pill { display: inline-block; font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 99px; }
+    .pf { background: rgba(52,211,153,.15); color: #34d399; }
+    .pp { background: rgba(96,165,250,.15); color: #93c5fd; }
+    .po { background: rgba(255,255,255,.09); color: rgba(255,255,255,.4); }
+    .tv-g { color: #34d399; font-weight: 700; }
+    .tv-b { color: #60a5fa; font-weight: 700; }
+    .tv-s { color: rgba(255,255,255,.35); font-weight: 700; }
+
+    /* ══════════════════════════════════════
+       SLIDE 9 — ROADMAP
+    ══════════════════════════════════════ */
+    .road-grid { flex: 1; min-height: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 13px; }
+    .rm { padding: 18px 16px; display: flex; flex-direction: column; gap: 9px; }
+    .snum { width: 34px; height: 34px; border-radius: 50%; background: var(--b7); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 800; flex-shrink: 0; }
+    .snum-y { background: #f59e0b; }
+    .sdur { display: inline-block; font-size: 10px; font-weight: 700; color: #fbbf24; background: rgba(251,191,36,.12); border: 1px solid rgba(251,191,36,.2); padding: 2px 8px; border-radius: 99px; }
+    .stitle { font-size: 13.5px; font-weight: 700; color: #fff; }
+    .slist { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+    .slist li { font-size: 11.5px; color: rgba(255,255,255,.48); display: flex; gap: 6px; line-height: 1.5; }
+    .slist li::before { content: '•'; color: var(--b4); font-weight: 700; flex-shrink: 0; }
+
+    /* ══════════════════════════════════════
+       SLIDE 10 — FECHAMENTO
+    ══════════════════════════════════════ */
+    .s10 { align-items: center; justify-content: center; text-align: center; gap: 26px; padding: 60px; }
+    .s10::before {
+      content: ''; position: absolute;
+      width: 500px; height: 500px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(59,130,246,.16) 0%, transparent 70%);
+      bottom: -100px; left: -80px; pointer-events: none;
+    }
+    .s10::after {
+      content: ''; position: absolute;
+      width: 400px; height: 400px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(251,191,36,.1) 0%, transparent 70%);
+      top: -80px; right: -60px; pointer-events: none;
+    }
+    .end-title {
+      font-size: clamp(28px, 3.8vw, 50px); font-weight: 900;
+      letter-spacing: -1.5px; line-height: 1.1; color: #fff;
+      position: relative; z-index: 1;
+    }
+    .end-title span {
+      background: linear-gradient(90deg, var(--amber), #f97316);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .end-sub { font-size: clamp(13px, 1.2vw, 16px); color: rgba(255,255,255,.52); max-width: 520px; line-height: 1.7; position: relative; z-index: 1; }
+    .stats { display: flex; gap: 14px; position: relative; z-index: 1; }
+    .stat { background: rgba(255,255,255,.065); border: 1px solid rgba(255,255,255,.1); border-radius: 16px; padding: 20px 28px; min-width: 160px; backdrop-filter: blur(12px); }
+    .stat-n { font-size: 36px; font-weight: 900; color: var(--amber); letter-spacing: -1px; }
+    .stat-l { font-size: 12px; color: rgba(255,255,255,.4); margin-top: 4px; }
+    .end-foot { font-size: 12px; color: rgba(255,255,255,.22); position: relative; z-index: 1; }
+  </style>
+</head>
+<body>
+
+<div id="bar"></div>
+<div class="corner"><button class="ctool" onclick="toggleFS()">⛶ Tela cheia</button></div>
+
+<div class="deck" id="deck">
+
+  <!-- ══ 1 — CAPA ═══════════════════════════════════════════ -->
+  <section class="slide s1 active">
+    <div class="rings">
+      <div class="rg rg1"></div><div class="rg rg2"></div>
+      <div class="rg rg3"></div><div class="rg rg4"></div>
+    </div>
+    <div class="c-emoji">🤲</div>
+    <h1 class="c-title">AMA<br>Arquitetura de Produção</h1>
+    <div class="c-bar"></div>
+    <p class="c-sub">O que é necessário para colocar o sistema de gestão de estoque em funcionamento real na instituição</p>
+    <div class="c-tags">
+      <span class="ctag">Amigos Mãos Abertas</span>
+      <span class="ctag">Documento Técnico</span>
+      <span class="ctag">Versão 1.0 · Maio 2026</span>
+      <span class="ctag">10 slides</span>
+    </div>
+  </section>
+
+  <!-- ══ 2 — COMPARATIVO ════════════════════════════════════ -->
+  <section class="slide s2">
+    <div class="sh"><div class="shb"></div><div><h2>Situação Atual vs. Sistema em Produção</h2><p>O que existe hoje e o que a ONG ganha com a implantação completa</p></div></div>
+    <div class="cmp-body">
+      <div class="gc gc-r cc cc-cur" style="border-radius:var(--radius)">
+        <div class="cc-head">
+          <span class="cc-icon">🖥️</span>
+          <h3>Hoje — Modo Demonstração</h3>
+        </div>
+        <ul class="clist">
+          <li><span class="ok">✓</span> Interface visual completa e funcional</li>
+          <li><span class="ok">✓</span> Cadastro de produtos com validade e status</li>
+          <li><span class="ok">✓</span> Módulo financeiro com gráficos</li>
+          <li><span class="ok">✓</span> Dashboard de indicadores em tempo real</li>
+          <li><span class="no">✗</span> Dados guardados apenas no navegador local</li>
+          <li><span class="no">✗</span> Outro computador enxerga dados diferentes</li>
+          <li><span class="no">✗</span> Limpar o cache apaga tudo permanentemente</li>
+          <li><span class="no">✗</span> Sem alertas automáticos por e-mail</li>
+          <li><span class="no">✗</span> Senhas sem criptografia real</li>
+        </ul>
+      </div>
+      <div class="carr">
+        <div class="carr-line"></div>
+        <div class="carr-icon">→</div>
+        <div class="carr-lbl">implantação</div>
+        <div class="carr-line"></div>
+      </div>
+      <div class="gc gc-g cc cc-tgt" style="border-radius:var(--radius)">
+        <div class="cc-head">
+          <span class="cc-icon">🚀</span>
+          <h3>Em Produção — Sistema Real</h3>
+        </div>
+        <ul class="clist">
+          <li><span class="ok">✓</span> Acesso de qualquer lugar com internet</li>
+          <li><span class="ok">✓</span> Vários voluntários usando ao mesmo tempo</li>
+          <li><span class="ok">✓</span> Dados em servidor com backup diário automático</li>
+          <li><span class="ok">✓</span> Alertas por e-mail de produtos vencendo</li>
+          <li><span class="ok">✓</span> Senhas criptografadas e login seguro (JWT)</li>
+          <li><span class="ok">✓</span> URL própria: ama.org.br</li>
+          <li><span class="ok">✓</span> Controle de acesso por função (admin / voluntário)</li>
+          <li><span class="ok">✓</span> Histórico de quem alterou o quê e quando</li>
+          <li><span class="ok">✓</span> Relatórios exportáveis</li>
+          <li><span class="ok">✓</span> Cadastro via leitura de código de barras</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 3 — DIAGRAMA ══════════════════════════════════════ -->
+  <section class="slide s3">
+    <div class="sh"><div class="shb"></div><div><h2>Diagrama de Arquitetura</h2><p>Visão completa de todos os componentes necessários para o sistema funcionar em produção</p></div></div>
+    <div class="dia-wrap">
+      <svg viewBox="0 0 1200 752" xmlns="http://www.w3.org/2000/svg" font-family="'Inter','Segoe UI',system-ui,sans-serif">
+        <defs>
+          <marker id="ab" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#1d4ed8"/></marker>
+          <marker id="ap" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#7c3aed"/></marker>
+          <marker id="ac" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#0891b2"/></marker>
+          <marker id="ag" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#16a34a"/></marker>
+        </defs>
+        <rect x="30" y="14" width="1140" height="128" rx="14" fill="#fffbeb" stroke="#fcd34d" stroke-width="1.5"/>
+        <rect x="30" y="14" width="118" height="27" rx="7" fill="#f59e0b"/>
+        <text x="89" y="31.5" text-anchor="middle" font-size="12" font-weight="700" fill="#78350f">USUÁRIOS</text>
+        <text x="145" y="74" text-anchor="middle" font-size="30">💻</text>
+        <text x="145" y="107" text-anchor="middle" font-size="11" fill="#92400e">Desktop</text>
+        <text x="215" y="74" text-anchor="middle" font-size="30">📱</text>
+        <text x="215" y="107" text-anchor="middle" font-size="11" fill="#92400e">Celular</text>
+        <text x="285" y="74" text-anchor="middle" font-size="30">🖥️</text>
+        <text x="285" y="107" text-anchor="middle" font-size="11" fill="#92400e">Tablet</text>
+        <line x1="328" y1="26" x2="328" y2="130" stroke="#fde68a" stroke-width="1.5"/>
+        <text x="356" y="50" font-size="14" font-weight="700" fill="#78350f">Voluntários, Coordenadores e Administradores da AMA</text>
+        <text x="356" y="70" font-size="12" fill="#92400e">Acessam pelo navegador do computador ou celular — sem precisar instalar nenhum aplicativo</text>
+        <text x="356" y="88" font-size="12" fill="#92400e">Vários usuários podem usar ao mesmo tempo, de locais e dispositivos diferentes</text>
+        <text x="356" y="106" font-size="11" fill="#b45309">Suporte a: Chrome, Firefox, Safari e Edge (versões recentes)</text>
+        <text x="356" y="122" font-size="11" fill="#b45309">Exemplo: coordenador no escritório + voluntário no celular no armazém</text>
+        <line x1="600" y1="143" x2="600" y2="181" stroke="#1d4ed8" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#ab)"/>
+        <rect x="510" y="149" width="180" height="22" rx="11" fill="#dbeafe"/>
+        <text x="600" y="164" text-anchor="middle" font-size="11" font-weight="600" fill="#1e40af">HTTPS / TLS 1.3 — Criptografado</text>
+        <rect x="30" y="183" width="1140" height="150" rx="14" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+        <rect x="30" y="183" width="178" height="27" rx="7" fill="#1d4ed8"/>
+        <text x="119" y="200.5" text-anchor="middle" font-size="12" font-weight="700" fill="white">FRONTEND (ESTÁTICO)</text>
+        <rect x="878" y="191" width="148" height="23" rx="11.5" fill="#dcfce7" stroke="#86efac" stroke-width="1.5"/>
+        <text x="952" y="206.5" text-anchor="middle" font-size="11" font-weight="700" fill="#15803d">✓ JÁ EXISTE</text>
+        <rect x="50"  y="220" width="262" height="100" rx="10" fill="white" stroke="#bfdbfe" stroke-width="1"/>
+        <text x="181" y="240" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">⚛ React 19 + TypeScript</text>
+        <text x="181" y="256" text-anchor="middle" font-size="11" fill="#3b82f6">Interface completa e funcional</text>
+        <text x="68"  y="274" font-size="10" fill="#64748b">• Tailwind CSS (estilos responsivos)</text>
+        <text x="68"  y="289" font-size="10" fill="#64748b">• Framer Motion (animações)</text>
+        <text x="68"  y="304" font-size="10" fill="#64748b">• Vite 8 (build otimizado)</text>
+        <rect x="326" y="220" width="262" height="100" rx="10" fill="white" stroke="#bfdbfe" stroke-width="1"/>
+        <text x="457" y="240" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">☁ Vercel / Netlify (CDN)</text>
+        <text x="457" y="256" text-anchor="middle" font-size="11" fill="#3b82f6">Hospedagem gratuita para ONGs</text>
+        <text x="344" y="274" font-size="10" fill="#64748b">• Deploy automático via GitHub</text>
+        <text x="344" y="289" font-size="10" fill="#64748b">• CDN distribuído globalmente</text>
+        <text x="344" y="304" font-size="10" fill="#16a34a">• Plano gratuito disponível ✓</text>
+        <rect x="602" y="220" width="262" height="100" rx="10" fill="white" stroke="#bfdbfe" stroke-width="1"/>
+        <text x="733" y="240" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">🌐 Domínio + SSL</text>
+        <text x="733" y="256" text-anchor="middle" font-size="11" fill="#3b82f6">ama.org.br via Registro.br</text>
+        <text x="620" y="274" font-size="10" fill="#64748b">• Certificado SSL automático</text>
+        <text x="620" y="289" font-size="10" fill="#64748b">• Renovação gratuita (Let's Encrypt)</text>
+        <text x="620" y="304" font-size="10" fill="#64748b">• Custo: ~R$ 40/ano</text>
+        <rect x="878" y="220" width="262" height="100" rx="10" fill="white" stroke="#bfdbfe" stroke-width="1"/>
+        <text x="1009" y="240" text-anchor="middle" font-size="12" font-weight="700" fill="#1e40af">📦 Funcionalidades</text>
+        <text x="1009" y="256" text-anchor="middle" font-size="11" fill="#3b82f6">Prontas + planejadas</text>
+        <text x="896"  y="274" font-size="10" fill="#64748b">• Estoque, financeiro e dashboard</text>
+        <text x="896"  y="289" font-size="10" fill="#64748b">• Login, filtros e gráficos</text>
+        <text x="896"  y="304" font-size="10" fill="#f59e0b">⚠ Código de barras (a construir)</text>
+        <line x1="600" y1="334" x2="600" y2="372" stroke="#1d4ed8" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#ab)"/>
+        <rect x="510" y="340" width="180" height="22" rx="11" fill="#dbeafe"/>
+        <text x="600" y="355" text-anchor="middle" font-size="11" font-weight="600" fill="#1e40af">REST API (JSON / HTTPS)</text>
+        <rect x="30" y="374" width="1140" height="162" rx="14" fill="#1e3a8a" stroke="#1e40af" stroke-width="1.5"/>
+        <rect x="30" y="374" width="162" height="27" rx="7" fill="#1e40af"/>
+        <text x="111" y="391.5" text-anchor="middle" font-size="12" font-weight="700" fill="white">BACKEND (API)</text>
+        <rect x="868" y="382" width="178" height="23" rx="11.5" fill="rgba(251,191,36,0.18)" stroke="#fbbf24" stroke-width="1.5"/>
+        <text x="957" y="397.5" text-anchor="middle" font-size="11" font-weight="700" fill="#fbbf24">⚠ A CONSTRUIR</text>
+        <rect x="50"  y="411" width="262" height="112" rx="10" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.13)" stroke-width="1"/>
+        <text x="181" y="431" text-anchor="middle" font-size="12" font-weight="700" fill="white">🟢 Node.js + Express</text>
+        <text x="181" y="447" text-anchor="middle" font-size="11" fill="#93c5fd">Servidor e lógica da aplicação</text>
+        <text x="68"  y="465" font-size="10" fill="#bfdbfe">• Validações e regras de negócio</text>
+        <text x="68"  y="480" font-size="10" fill="#bfdbfe">• Geração de relatórios</text>
+        <text x="68"  y="495" font-size="10" fill="#bfdbfe">• Agendamento de alertas</text>
+        <text x="68"  y="515" font-size="9" fill="#60a5fa">Railway ou Render · ~R$ 40–80/mês</text>
+        <rect x="326" y="411" width="262" height="112" rx="10" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.13)" stroke-width="1"/>
+        <text x="457" y="431" text-anchor="middle" font-size="12" font-weight="700" fill="white">🔐 Autenticação JWT</text>
+        <text x="457" y="447" text-anchor="middle" font-size="11" fill="#93c5fd">Login seguro e sessões</text>
+        <text x="344" y="465" font-size="10" fill="#bfdbfe">• Tokens JWT (expiram em 24h)</text>
+        <text x="344" y="480" font-size="10" fill="#bfdbfe">• Bcrypt para hash de senhas</text>
+        <text x="344" y="495" font-size="10" fill="#bfdbfe">• Refresh tokens de sessão</text>
+        <text x="344" y="515" font-size="9" fill="#fde68a">Substitui o localStorage atual</text>
+        <rect x="602" y="411" width="262" height="112" rx="10" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.13)" stroke-width="1"/>
+        <text x="733" y="431" text-anchor="middle" font-size="12" font-weight="700" fill="white">👤 Permissões (RBAC)</text>
+        <text x="733" y="447" text-anchor="middle" font-size="11" fill="#93c5fd">Controle por função de acesso</text>
+        <text x="620" y="465" font-size="10" fill="#bfdbfe">• Admin: acesso total</text>
+        <text x="620" y="480" font-size="10" fill="#bfdbfe">• Coordenador: gerencia estoque</text>
+        <text x="620" y="495" font-size="10" fill="#bfdbfe">• Voluntário: visualiza e registra</text>
+        <text x="620" y="515" font-size="9" fill="#60a5fa">Permissões verificadas no servidor</text>
+        <rect x="878" y="411" width="262" height="112" rx="10" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.13)" stroke-width="1"/>
+        <text x="1009" y="431" text-anchor="middle" font-size="12" font-weight="700" fill="white">🔗 API REST</text>
+        <text x="1009" y="447" text-anchor="middle" font-size="11" fill="#93c5fd">Comunicação com o frontend</text>
+        <text x="896"  y="465" font-size="10" fill="#bfdbfe">• CRUD de produtos e finanças</text>
+        <text x="896"  y="480" font-size="10" fill="#bfdbfe">• Endpoints de usuários</text>
+        <text x="896"  y="495" font-size="10" fill="#bfdbfe">• Relatórios e exportação</text>
+        <text x="896"  y="515" font-size="9" fill="#60a5fa">~30 endpoints no total</text>
+        <line x1="600" y1="537" x2="600" y2="558" stroke="#94a3b8" stroke-width="2"/>
+        <line x1="215" y1="558" x2="985" y2="558" stroke="#94a3b8" stroke-width="2"/>
+        <line x1="215" y1="558" x2="215" y2="576" stroke="#7c3aed" stroke-width="2" marker-end="url(#ap)"/>
+        <line x1="600" y1="558" x2="600" y2="576" stroke="#0891b2" stroke-width="2" marker-end="url(#ac)"/>
+        <line x1="985" y1="558" x2="985" y2="576" stroke="#16a34a" stroke-width="2" marker-end="url(#ag)"/>
+        <rect x="30" y="579" width="370" height="158" rx="14" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1.5"/>
+        <rect x="30" y="579" width="182" height="27" rx="7" fill="#7c3aed"/>
+        <text x="121" y="596.5" text-anchor="middle" font-size="12" font-weight="700" fill="white">BANCO DE DADOS</text>
+        <text x="215" y="628" text-anchor="middle" font-size="16" font-weight="800" fill="#5b21b6">PostgreSQL</text>
+        <text x="215" y="644" text-anchor="middle" font-size="11" fill="#7c3aed">Supabase (gratuito) ou Railway</text>
+        <text x="50" y="664" font-size="11" fill="#6d28d9">• Produtos, categorias e estoque</text>
+        <text x="50" y="680" font-size="11" fill="#6d28d9">• Transações e histórico financeiro</text>
+        <text x="50" y="696" font-size="11" fill="#6d28d9">• Usuários, funções e permissões</text>
+        <text x="50" y="712" font-size="11" fill="#6d28d9">• Log de auditoria (quem alterou)</text>
+        <text x="50" y="728" font-size="10" fill="#7c3aed">✓ Backup automático diário incluído</text>
+        <rect x="415" y="579" width="370" height="158" rx="14" fill="#ecfeff" stroke="#67e8f9" stroke-width="1.5"/>
+        <rect x="415" y="579" width="168" height="27" rx="7" fill="#0891b2"/>
+        <text x="499" y="596.5" text-anchor="middle" font-size="12" font-weight="700" fill="white">CACHE (Opcional)</text>
+        <text x="600" y="628" text-anchor="middle" font-size="16" font-weight="800" fill="#0e7490">Redis</text>
+        <text x="600" y="644" text-anchor="middle" font-size="11" fill="#0891b2">Upstash — grátis até 10k req/dia</text>
+        <text x="433" y="664" font-size="11" fill="#0e7490">• Sessões de usuário logado</text>
+        <text x="433" y="680" font-size="11" fill="#0e7490">• Cache de consultas frequentes</text>
+        <text x="433" y="696" font-size="11" fill="#0e7490">• Melhora a performance geral</text>
+        <text x="433" y="712" font-size="11" fill="#0e7490">• Filas de e-mails de alerta</text>
+        <text x="433" y="728" font-size="10" fill="#0891b2">⚡ Pode ser adicionado após a 1ª versão</text>
+        <rect x="800" y="579" width="370" height="158" rx="14" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+        <rect x="800" y="579" width="168" height="27" rx="7" fill="#16a34a"/>
+        <text x="884" y="596.5" text-anchor="middle" font-size="12" font-weight="700" fill="white">NOTIFICAÇÕES</text>
+        <text x="985" y="628" text-anchor="middle" font-size="16" font-weight="800" fill="#15803d">SendGrid / SMTP</text>
+        <text x="985" y="644" text-anchor="middle" font-size="11" fill="#16a34a">100 e-mails/dia no plano gratuito</text>
+        <text x="818" y="664" font-size="11" fill="#15803d">• Alertas de produtos vencendo em 7d</text>
+        <text x="818" y="680" font-size="11" fill="#15803d">• Relatório semanal automático</text>
+        <text x="818" y="696" font-size="11" fill="#15803d">• Aviso de estoque crítico ou zerado</text>
+        <text x="818" y="712" font-size="11" fill="#15803d">• Boas-vindas a novos usuários</text>
+        <text x="818" y="728" font-size="10" fill="#16a34a">✓ Muito recomendado para a ONG</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ══ 4 — FRONTEND ══════════════════════════════════════ -->
+  <section class="slide s4">
+    <div class="sh"><div class="shb"></div><div><h2>Frontend React — Já Existe</h2><p>Interface completa desenvolvida, pronta para ser publicada</p></div></div>
+    <div class="comp-layout">
+      <div class="comp-main gc gc-g">
+        <div class="comp-emoji">⚛</div>
+        <div>
+          <div class="comp-name">Frontend React</div>
+          <div class="comp-svc" style="color:#34d399">React 19 · TypeScript · Vite · Tailwind CSS</div>
+        </div>
+        <span class="bdg bdg-g">✓ Código pronto</span>
+        <div class="comp-meta">
+          <div class="sep"></div>
+          <div class="mrow"><span class="ml">Hospedagem</span><span class="mv">Vercel ou Netlify</span></div>
+          <div class="mrow"><span class="ml">Custo</span><span class="mv-g">Gratuito</span></div>
+          <div class="mrow"><span class="ml">Domínio .org.br</span><span class="mv-b">~R$ 40/ano</span></div>
+          <div class="mrow"><span class="ml">SSL</span><span class="mv-g">Automático (grátis)</span></div>
+          <div class="mrow"><span class="ml">Esforço de deploy</span><span class="mv">1 dia</span></div>
+        </div>
+      </div>
+      <div class="comp-right">
+        <div class="icard gc">
+          <h4>📦 O que já está pronto</h4>
+          <ul>
+            <li>Dashboard com indicadores de estoque em tempo real</li>
+            <li>Cadastro e edição de produtos com validade e status</li>
+            <li>Módulo financeiro com gráficos e categorias</li>
+            <li>Tela de login com autenticação por usuário</li>
+            <li>Filtros avançados, busca e ordenação</li>
+            <li>Layout responsivo: celular, tablet e desktop</li>
+          </ul>
+        </div>
+        <div class="callout cl-b">
+          💡 <strong>O que falta?</strong> O código precisa ser publicado em um servidor para que qualquer pessoa com o link possa acessar. Hoje ele roda apenas na máquina do desenvolvedor. O processo de publicação leva cerca de 1 dia.
+        </div>
+        <div class="icard gc">
+          <h4>🚀 Deploy em 3 passos</h4>
+          <ul>
+            <li>Conectar o repositório GitHub ao Vercel ou Netlify</li>
+            <li>Configurar o domínio ama.org.br via Registro.br</li>
+            <li>O SSL é emitido e renovado automaticamente</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 5 — BACKEND ═══════════════════════════════════════ -->
+  <section class="slide s5">
+    <div class="sh"><div class="shb"></div><div><h2>Backend (API) — A Construir</h2><p>O "cérebro" compartilhado: servidor, autenticação, permissões e comunicação com o banco de dados</p></div></div>
+    <div class="bk-grid">
+      <div class="gc bk-card">
+        <h3>🟢 Node.js + Express</h3>
+        <p>Servidor que recebe pedidos do frontend, executa validações e conecta ao banco de dados.</p>
+        <ul>
+          <li>Validações e regras de negócio centralizadas</li>
+          <li>Geração de relatórios em PDF e CSV</li>
+          <li>Agendamento de alertas automáticos</li>
+          <li>Integração com banco e serviços externos</li>
+        </ul>
+        <div class="bk-note">Hospedagem: Railway ou Render · ~R$ 40–80/mês</div>
+      </div>
+      <div class="gc bk-card">
+        <h3>🔐 Autenticação JWT</h3>
+        <p>Substitui o localStorage atual por login seguro com tokens criptografados.</p>
+        <ul>
+          <li>Tokens JWT com expiração em 24 horas</li>
+          <li>Bcrypt para hash seguro das senhas</li>
+          <li>Refresh tokens para sessões longas</li>
+          <li>Proteção de rotas no frontend e backend</li>
+        </ul>
+        <div class="bk-note" style="color:#fde68a">Elimina senhas em texto simples no localStorage</div>
+      </div>
+      <div class="gc bk-card">
+        <h3>👤 Permissões (RBAC)</h3>
+        <p>Cada usuário acessa apenas o que sua função permite.</p>
+        <ul>
+          <li>Admin: acesso total ao sistema</li>
+          <li>Coordenador: gerencia estoque e financeiro</li>
+          <li>Voluntário: visualiza e registra entradas</li>
+          <li>Log de auditoria: quem alterou o quê e quando</li>
+        </ul>
+        <div class="bk-note">Permissões verificadas no servidor, não no navegador</div>
+      </div>
+      <div class="gc bk-card">
+        <h3>🔗 API REST (~30 endpoints)</h3>
+        <p>Interface padronizada para comunicação entre frontend e servidor.</p>
+        <ul>
+          <li>CRUD completo: produtos, categorias, finanças</li>
+          <li>Endpoints de usuários e permissões</li>
+          <li>Relatórios, exportação e estatísticas</li>
+          <li>Webhook para integrações futuras</li>
+        </ul>
+        <div class="bk-note">Prazo de desenvolvimento: 2–3 semanas</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 6 — INFRA ═════════════════════════════════════════ -->
+  <section class="slide s6">
+    <div class="sh"><div class="shb"></div><div><h2>Banco de Dados, Cache e Notificações</h2><p>Os serviços que guardam, aceleram e comunicam as informações do sistema</p></div></div>
+    <div class="infra-grid">
+      <div class="gc-p ifcard if-db">
+        <h3>🗄️ Banco de Dados</h3>
+        <div class="if-name">PostgreSQL</div>
+        <div class="if-svc">Supabase (gratuito) ou Railway</div>
+        <p>Onde todos os dados ficam armazenados de forma centralizada e segura. Substitui o localStorage do navegador.</p>
+        <ul>
+          <li>Produtos, categorias e estoque</li>
+          <li>Transações e histórico financeiro</li>
+          <li>Usuários, funções e permissões</li>
+          <li>Log de auditoria (quem alterou)</li>
+        </ul>
+        <div class="if-foot">✓ Gratuito até 500 MB · Backup diário automático</div>
+      </div>
+      <div class="gc-c ifcard if-cache">
+        <h3>⚡ Cache</h3>
+        <div class="if-name">Redis</div>
+        <div class="if-svc">Upstash — grátis até 10k req/dia</div>
+        <p>Memória temporária para dados frequentes. Deixa o sistema mais rápido e gerencia sessões.</p>
+        <ul>
+          <li>Sessões de usuário logado</li>
+          <li>Cache de consultas frequentes</li>
+          <li>Melhora performance com muitos usuários</li>
+          <li>Filas de e-mails de alerta</li>
+        </ul>
+        <div class="if-foot">Opcional — pode ser adicionado após a 1ª versão</div>
+      </div>
+      <div class="gc-g ifcard if-email">
+        <h3>📧 Notificações</h3>
+        <div class="if-name">SendGrid</div>
+        <div class="if-svc">100 e-mails/dia no plano gratuito</div>
+        <p>Alertas automáticos para coordenadores sem precisar entrar no sistema diariamente.</p>
+        <ul>
+          <li>Alertas de produtos vencendo em 7 dias</li>
+          <li>Relatório semanal automático</li>
+          <li>Aviso de estoque crítico ou zerado</li>
+          <li>Boas-vindas a novos usuários</li>
+        </ul>
+        <div class="if-foot">✓ Alta prioridade — recomendado desde o início</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 7 — CÓDIGO DE BARRAS ══════════════════════════════ -->
+  <section class="slide s7">
+    <div class="sh"><div class="shb" style="background:var(--amber)"></div><div><h2>Leitor de Código de Barras</h2><p>Funcionalidade planejada para após o lançamento inicial</p></div></div>
+    <div class="bc-layout">
+      <div class="gc-a bc-left">
+        <div style="font-size:52px;line-height:1">📷</div>
+        <h3>Cadastro por câmera</h3>
+        <p>O voluntário aponta a câmera do celular para o código de barras. A leitura acontece direto no navegador, sem instalar nenhum aplicativo.</p>
+        <div class="bc-chip">
+          <div>📦 <strong>html5-qrcode</strong> — leitura via câmera<br>🌐 <strong>Open Food Facts API</strong> — dados do produto<br>💰 <strong>Custo: Gratuito</strong></div>
+        </div>
+        <div class="bc-tag">⏱ Esforço estimado: ~1 semana</div>
+      </div>
+      <div class="bc-right">
+        <div class="gc-a bc-card">
+          <h4>📋 Como funciona</h4>
+          <p>O sistema abre a câmera, lê o código EAN e consulta automaticamente nome, marca e categoria em uma base de dados pública.</p>
+        </div>
+        <div class="gc-a bc-card">
+          <h4>✍️ Preenchimento automático</h4>
+          <ul>
+            <li>Nome completo do produto</li>
+            <li>Marca e fabricante</li>
+            <li>Categoria (alimento, limpeza…)</li>
+            <li>Unidade de medida</li>
+          </ul>
+        </div>
+        <div class="gc-a bc-card bc-wide">
+          <h4>💡 Por que é valioso para a ONG</h4>
+          <div class="bc-hl">Em vez de digitar nome, categoria e marca, o voluntário escaneia o código e só preenche <strong>quantidade</strong> e <strong>data de validade</strong>. Ideal para recebimento de grandes doações — reduz drasticamente o tempo de cadastro.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 8 — CUSTOS ════════════════════════════════════════ -->
+  <section class="slide s8">
+    <div class="sh"><div class="shb"></div><div><h2>Estimativa de Custos Mensais</h2><p>Referência: maio de 2026 · Cotação do dólar a ~R$ 5,80</p></div></div>
+    <div class="cost-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Componente</th>
+            <th>Serviço recomendado</th>
+            <th>Plano</th>
+            <th>Custo mensal</th>
+            <th>Observação</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong style="color:rgba(255,255,255,.85)">Frontend (hospedagem)</strong></td>
+            <td>Vercel ou Netlify</td>
+            <td><span class="pill pf">Gratuito</span></td>
+            <td class="tv-g">R$ 0</td>
+            <td>Plano free para projetos OSS e ONGs</td>
+          </tr>
+          <tr>
+            <td><strong style="color:rgba(255,255,255,.85)">Backend Node.js (servidor API)</strong></td>
+            <td>Railway ou Render</td>
+            <td><span class="pill pp">Pago</span></td>
+            <td class="tv-b">~R$ 40–80</td>
+            <td>512 MB RAM é suficiente para começar</td>
+          </tr>
+          <tr>
+            <td><strong style="color:rgba(255,255,255,.85)">Banco de dados PostgreSQL</strong></td>
+            <td>Supabase</td>
+            <td><span class="pill pf">Gratuito</span></td>
+            <td class="tv-g">R$ 0</td>
+            <td>Free até 500 MB — suficiente por anos</td>
+          </tr>
+          <tr>
+            <td><strong style="color:rgba(255,255,255,.85)">Domínio ama.org.br</strong></td>
+            <td>Registro.br</td>
+            <td><span class="pill pp">Pago</span></td>
+            <td class="tv-b">~R$ 3,50</td>
+            <td>R$ 40 cobrado anualmente</td>
+          </tr>
+          <tr>
+            <td><strong style="color:rgba(255,255,255,.85)">SSL (certificado HTTPS)</strong></td>
+            <td>Let's Encrypt via Vercel</td>
+            <td><span class="pill pf">Gratuito</span></td>
+            <td class="tv-g">R$ 0</td>
+            <td>Automático, renovado a cada 90 dias</td>
+          </tr>
+          <tr>
+            <td><strong style="color:rgba(255,255,255,.85)">E-mail automático</strong></td>
+            <td>Twilio SendGrid</td>
+            <td><span class="pill pf">Gratuito</span></td>
+            <td class="tv-g">R$ 0</td>
+            <td>Até 100 e-mails/dia — mais que suficiente</td>
+          </tr>
+          <tr>
+            <td><strong style="color:rgba(255,255,255,.85)">Cache Redis</strong></td>
+            <td>Upstash</td>
+            <td><span class="pill po">Opcional</span></td>
+            <td class="tv-s">R$ 0</td>
+            <td>Free tier generoso — adicionar se necessário</td>
+          </tr>
+          <tr class="total">
+            <td colspan="3"><strong>💰 Total estimado</strong></td>
+            <td><strong>~R$ 44–84/mês</strong></td>
+            <td>Custo concentrado no servidor backend</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══ 9 — ROADMAP ═══════════════════════════════════════ -->
+  <section class="slide s9">
+    <div class="sh"><div class="shb"></div><div><h2>Roteiro de Implantação</h2><p>Estimativa de 4 a 6 semanas com 1 desenvolvedor backend experiente em Node.js e PostgreSQL</p></div></div>
+    <div class="road-grid">
+      <div class="gc rm">
+        <div class="snum">1</div>
+        <span class="sdur">Semana 1 · 3–5 dias</span>
+        <div class="stitle">Infraestrutura</div>
+        <ul class="slist">
+          <li>Banco no Supabase + configurar PostgreSQL</li>
+          <li>Repositório GitHub + conectar ao Vercel</li>
+          <li>Publicar frontend com domínio ama.org.br</li>
+          <li>Conta Railway/Render para o backend</li>
+          <li>Conta SendGrid e configurar e-mail</li>
+        </ul>
+      </div>
+      <div class="gc rm">
+        <div class="snum">2</div>
+        <span class="sdur">Semanas 2–3 · ~2 semanas</span>
+        <div class="stitle">Desenvolvimento Backend</div>
+        <ul class="slist">
+          <li>Criar servidor Node.js + Express</li>
+          <li>Modelar tabelas do banco de dados</li>
+          <li>Autenticação JWT e bcrypt</li>
+          <li>Endpoints REST para produtos e financeiro</li>
+          <li>Envio de alertas por e-mail</li>
+        </ul>
+      </div>
+      <div class="gc rm">
+        <div class="snum">3</div>
+        <span class="sdur">Semana 4 · ~1 semana</span>
+        <div class="stitle">Integração Frontend ↔ API</div>
+        <ul class="slist">
+          <li>Substituir localStorage pela API real</li>
+          <li>Adaptar contexto de login para JWT</li>
+          <li>Testar todos os fluxos: CRUD, filtros</li>
+          <li>Testar em celular e navegadores</li>
+          <li>Corrigir bugs de integração</li>
+        </ul>
+      </div>
+      <div class="gc rm">
+        <div class="snum">4</div>
+        <span class="sdur">Semanas 5–6 · ~1 semana</span>
+        <div class="stitle">Testes e Lançamento</div>
+        <ul class="slist">
+          <li>Migrar dados para o banco de produção</li>
+          <li>Criar usuários iniciais para a equipe</li>
+          <li>Treinamento com coordenadores</li>
+          <li>Monitorar nas primeiras semanas</li>
+          <li>Coletar feedback e ajustar</li>
+        </ul>
+      </div>
+      <div class="gc-a rm">
+        <div class="snum snum-y">5</div>
+        <span class="sdur">Após lançamento · ~1 semana</span>
+        <div class="stitle" style="color:#fbbf24">Código de Barras</div>
+        <ul class="slist" style="--c: rgba(251,191,36,.55)">
+          <li style="color:rgba(251,191,36,.6)">Instalar biblioteca html5-qrcode</li>
+          <li style="color:rgba(251,191,36,.6)">Tela de escaneamento via câmera</li>
+          <li style="color:rgba(251,191,36,.6)">Integrar Open Food Facts API</li>
+          <li style="color:rgba(251,191,36,.6)">Preenchimento automático de campos</li>
+          <li style="color:rgba(251,191,36,.6)">Testar com produtos reais da ONG</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 10 — FECHAMENTO ════════════════════════════════════ -->
+  <section class="slide s10">
+    <div class="rings" style="position:absolute;inset:0;pointer-events:none;overflow:hidden">
+      <div class="rg rg1" style="opacity:.5"></div>
+      <div class="rg rg2" style="opacity:.3"></div>
+    </div>
+    <div style="font-size:54px;line-height:1;position:relative;z-index:1">🤲</div>
+    <h2 class="end-title">Sistema pronto para<br><span>crescer com a ONG</span></h2>
+    <p class="end-sub">A maior parte da interface já está construída. O próximo passo é desenvolver o backend e publicar o sistema para que toda a equipe possa acessar de qualquer lugar.</p>
+    <div class="stats">
+      <div class="stat"><div class="stat-n">~R$ 44</div><div class="stat-l">custo mínimo mensal</div></div>
+      <div class="stat"><div class="stat-n">4–6</div><div class="stat-l">semanas para ir ao ar</div></div>
+      <div class="stat"><div class="stat-n">80%</div><div class="stat-l">do sistema já existe</div></div>
+    </div>
+    <p class="end-foot">AMA — Amigos Mãos Abertas · Documento Técnico de Implantação · Maio 2026</p>
+  </section>
+
+</div>
+
+<!-- ── NAV ── -->
+<nav class="nav">
+  <button class="nb" id="prev" onclick="go(-1)" disabled>&#8592;</button>
+  <div class="dots" id="dots"></div>
+  <span class="ncnt" id="cnt">1 / 10</span>
+  <button class="nb" id="next" onclick="go(1)">&#8594;</button>
+</nav>
+
+<script>
+  const slides = [...document.querySelectorAll('.slide')];
+  const N = slides.length;
+  let cur = 0;
+
+  const bar  = document.getElementById('bar');
+  const cnt  = document.getElementById('cnt');
+  const prev = document.getElementById('prev');
+  const next = document.getElementById('next');
+  const dots = document.getElementById('dots');
+
+  for (let i = 0; i < N; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' on' : '');
+    d.onclick = () => jump(i);
+    dots.appendChild(d);
+  }
+
+  function jump(n) {
+    slides[cur].classList.remove('active');
+    slides[cur].classList.add('out');
+    const old = cur;
+    setTimeout(() => slides[old].classList.remove('out'), 520);
+    dots.children[cur].classList.remove('on');
+    cur = Math.max(0, Math.min(N - 1, n));
+    slides[cur].classList.add('active');
+    dots.children[cur].classList.add('on');
+    cnt.textContent = (cur + 1) + ' / ' + N;
+    prev.disabled = cur === 0;
+    next.disabled = cur === N - 1;
+    bar.style.width = ((cur + 1) / N * 100) + '%';
+  }
+
+  function go(d) { jump(cur + d); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); go(1); }
+    if (e.key === 'ArrowLeft') go(-1);
+    if (e.key === 'f' || e.key === 'F') toggleFS();
+  });
+
+  let tx = 0;
+  document.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend', e => {
+    const d = tx - e.changedTouches[0].clientX;
+    if (Math.abs(d) > 48) go(d > 0 ? 1 : -1);
+  });
+
+  function toggleFS() {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+    else document.exitFullscreen?.();
+  }
+
+  bar.style.width = (1 / N * 100) + '%';
+</script>
+</body>
+</html>

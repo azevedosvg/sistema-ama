@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from "react";
+import { logLogin, logLogout } from "../lib/storage";
 
 type AuthContextType = {
   token: string | null;
@@ -16,9 +17,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   function login(newToken: string) {
     localStorage.setItem("token", newToken);
     setToken(newToken);
+    logLogin(newToken);
   }
 
   function logout() {
+    const current = localStorage.getItem("token");
+    if (current) logLogout(current);
     localStorage.removeItem("token");
     setToken(null);
   }
