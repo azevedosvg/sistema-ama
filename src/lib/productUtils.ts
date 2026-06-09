@@ -1,6 +1,6 @@
 import type { Product } from "../types/product";
 
-type StoredProduct = Omit<Product, "status" | "daysToExpire" | "riskValue">;
+type StoredProduct = Omit<Product, "status" | "daysToExpire" | "riskValue" | "lowStock">;
 
 export const PERISHABLE_CATEGORIES = new Set([
   "Alimentos",
@@ -30,6 +30,10 @@ export function getProductStatus(expirationDate: string): Product["status"] {
   return "safe";
 }
 
+export function isLowStock(quantity: number, minStock: number): boolean {
+  return minStock > 0 && quantity <= minStock;
+}
+
 export function enrich(p: StoredProduct): Product {
   const status = getProductStatus(p.expirationDate);
   const atRisk = status === "expired" || status === "critical";
@@ -38,6 +42,7 @@ export function enrich(p: StoredProduct): Product {
     status,
     daysToExpire: getDaysToExpire(p.expirationDate),
     riskValue: p.isDonation || !atRisk ? 0 : p.quantity * p.unitCost,
+    lowStock: isLowStock(p.quantity, p.minStock),
   };
 }
 
@@ -49,6 +54,7 @@ export function calcDashboard(products: Product[]) {
     criticalProducts: products.filter((p) => p.status === "critical").length,
     attentionProducts: products.filter((p) => p.status === "attention").length,
     safeProducts: products.filter((p) => p.status === "safe").length,
+    lowStockProducts: products.filter((p) => p.lowStock).length,
     totalRiskValue: products
       .filter((p) => !p.isDonation)
       .reduce((sum, p) => sum + p.riskValue, 0),

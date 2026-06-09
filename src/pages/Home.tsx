@@ -17,7 +17,9 @@ import ActivityLog from "../components/ActivityLog";
 import BudgetPanel from "../components/BudgetPanel";
 import Dashboard from "../components/Dashboard";
 import Footer from "../components/Footer";
+import BottomNav from "../components/BottomNav";
 import LogoMark from "../components/LogoMark";
+import NotificationBell from "../components/NotificationBell";
 import Overview from "../components/Overview";
 import ProductFilters from "../components/ProductFilters";
 import ProductForm from "../components/ProductForm";
@@ -25,6 +27,8 @@ import ProductList from "../components/ProductList";
 import ReportPanel from "../components/ReportPanel";
 import ScrollToTopButton from "../components/ScrollToTopButton";
 import StockMovement from "../components/StockMovement";
+import ConfirmDialog from "../components/ui/ConfirmDialog";
+import { useToast } from "../components/ui/Toast";
 import UserManagement from "../components/UserManagement";
 import { useAuth } from "../contexts/AuthContext";
 import { useFinance } from "../hooks/useFinance";
@@ -58,7 +62,7 @@ function SectionTitle({ title, sub }: { title: string; sub: string }) {
       <div className="w-1 h-7 bg-amber-400 rounded-full flex-shrink-0" />
       <div>
         <h2 className="text-lg font-bold text-gray-900">{title}</h2>
-        <p className="text-sm text-gray-400">{sub}</p>
+        <p className="text-sm text-gray-500">{sub}</p>
       </div>
     </div>
   );
@@ -66,6 +70,7 @@ function SectionTitle({ title, sub }: { title: string; sub: string }) {
 
 export default function Home() {
   const { logout, role, isAdmin } = useAuth();
+  const { notify } = useToast();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<HomeTab>("visao");
   const finance = useFinance();
@@ -92,7 +97,10 @@ export default function Home() {
     handleInputChange,
     handleSubmitProduct,
     handleEditProduct,
-    handleDeleteProduct,
+    requestDeleteProduct,
+    confirmDeleteProduct,
+    cancelDeleteProduct,
+    pendingDeleteProduct,
   } = useProducts();
 
   const visibleTabs = TABS.filter((t) => !t.adminOnly || isAdmin);
@@ -123,10 +131,10 @@ export default function Home() {
           </Link>
 
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-            {/* Navigation */}
+            {/* Navegação principal (desktop) — abas com rótulo, recolhe na barra inferior abaixo de xl */}
             <nav
               aria-label="Navegação principal"
-              className="flex min-w-0 items-center gap-0.5 p-1 bg-blue-800/50 rounded-xl overflow-x-auto no-scrollbar"
+              className="hidden min-w-0 items-center gap-1 overflow-x-auto rounded-xl bg-blue-800/50 p-1 no-scrollbar xl:flex"
             >
               {visibleTabs.map(({ id, label, icon: Icon }) => (
                 <button
@@ -135,28 +143,29 @@ export default function Home() {
                   onClick={() => setActiveTab(id)}
                   title={label}
                   aria-current={activeTab === id ? "page" : undefined}
-                  className={`relative flex items-center gap-2 px-2.5 xl:px-3.5 py-2 rounded-lg text-sm font-semibold transition-colors flex-shrink-0 ${
+                  className={`relative flex flex-shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
                     activeTab === id ? "text-blue-900" : "text-blue-100 hover:text-white"
                   }`}
                 >
                   {activeTab === id && (
                     <motion.span
                       layoutId="tab-bg"
-                      className="absolute inset-0 bg-amber-400 rounded-lg shadow-sm"
+                      className="absolute inset-0 rounded-lg bg-amber-400 shadow-sm"
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
                   )}
                   <Icon size={16} className="relative flex-shrink-0" />
-                  <span className="relative hidden xl:inline">{label}</span>
+                  <span className="relative whitespace-nowrap">{label}</span>
                 </button>
               ))}
             </nav>
 
-            {/* Divider */}
-            <div className="hidden xl:block w-px h-7 bg-blue-500/60 flex-shrink-0" />
+            <NotificationBell onNavigate={setActiveTab} />
 
+            {/* Divisor + selo de papel — só em telas bem largas, para a barra nunca cortar */}
+            <div className="hidden h-7 w-px flex-shrink-0 bg-blue-500/60 2xl:block" />
             {role && (
-              <span className="hidden xl:inline flex-shrink-0 rounded-full bg-blue-800/60 px-3 py-1 text-xs font-semibold text-amber-300">
+              <span className="hidden flex-shrink-0 rounded-full bg-blue-800/60 px-3 py-1 text-xs font-semibold text-amber-300 2xl:inline">
                 {ROLE_LABELS[role]}
               </span>
             )}
@@ -165,7 +174,7 @@ export default function Home() {
               onClick={handleLogout}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
-              className="flex flex-shrink-0 items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-medium text-blue-100 hover:text-white hover:bg-blue-600 transition-colors"
+              className="flex flex-shrink-0 items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-blue-100 transition-colors hover:bg-blue-600 hover:text-white sm:px-4"
             >
               <LogOut size={16} />
               <span className="hidden sm:inline">Sair</span>
@@ -174,7 +183,7 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="w-full flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="w-full flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24 space-y-8 xl:pb-8">
         {activeTab === "visao" && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -220,7 +229,7 @@ export default function Home() {
                     <h2 className="text-lg font-bold text-gray-900">
                       {editingProductId !== null ? "Editar Produto" : "Cadastrar Produto"}
                     </h2>
-                    <p className="text-sm text-gray-400">
+                    <p className="text-sm text-gray-500">
                       {editingProductId !== null
                         ? "Atualize as informações do produto selecionado"
                         : "Preencha os dados para adicionar um novo item ao estoque"}
@@ -270,7 +279,7 @@ export default function Home() {
               <ProductList
                 products={visibleProducts}
                 onEdit={handleEditProduct}
-                onDelete={handleDeleteProduct}
+                onDelete={requestDeleteProduct}
                 hasMore={hasMore}
                 remainingCount={displayedProducts.length - visibleProducts.length}
                 onShowMore={showMore}
@@ -340,8 +349,26 @@ export default function Home() {
         )}
       </main>
 
+      <ConfirmDialog
+        open={pendingDeleteProduct !== null}
+        title="Excluir produto"
+        message={
+          pendingDeleteProduct
+            ? `O produto "${pendingDeleteProduct.name}" será removido do estoque permanentemente. Deseja continuar?`
+            : ""
+        }
+        confirmLabel="Excluir"
+        onConfirm={() => {
+          const name = pendingDeleteProduct?.name;
+          confirmDeleteProduct();
+          if (name) notify(`Produto "${name}" excluído.`, "info");
+        }}
+        onCancel={cancelDeleteProduct}
+      />
+
       <Footer />
       <ScrollToTopButton />
+      <BottomNav tabs={visibleTabs} activeTab={activeTab} onSelect={setActiveTab} />
     </div>
   );
 }

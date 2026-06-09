@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useMovements } from "../hooks/useMovements";
-import { MOVEMENT_REASONS, type MovementType } from "../types/movement";
+import { MOVEMENT_REASONS, PARTY_LABELS, type MovementType } from "../types/movement";
 import ConfirmDialog from "./ui/ConfirmDialog";
 import EmptyState from "./ui/EmptyState";
 import { useToast } from "./ui/Toast";
@@ -72,7 +72,7 @@ export default function StockMovement() {
         <div className="h-7 w-1 flex-shrink-0 rounded-full bg-amber-400" />
         <div>
           <h2 className="text-lg font-bold text-gray-900">Movimentação de Estoque</h2>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-gray-500">
             Registre entradas e saídas — a quantidade do produto é atualizada automaticamente
           </p>
         </div>
@@ -105,7 +105,7 @@ export default function StockMovement() {
         <div className="p-6">
           <h3 className="mb-4 text-base font-bold text-gray-900">Nova movimentação</h3>
           <form onSubmit={onSubmit}>
-            <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <Field label="Produto">
                 <select name="productId" value={form.productId} onChange={handleInputChange} className={`${inputCls} cursor-pointer`}>
                   <option value="">Selecionar...</option>
@@ -162,6 +162,17 @@ export default function StockMovement() {
                     <option key={r} value={r}>{r}</option>
                   ))}
                 </select>
+              </Field>
+
+              <Field label={PARTY_LABELS[form.type]}>
+                <input
+                  name="party"
+                  type="text"
+                  value={form.party}
+                  onChange={handleInputChange}
+                  placeholder={form.type === "entrada" ? "Opcional — ex: Supermercado Família" : "Opcional — ex: Família atendida"}
+                  className={inputCls}
+                />
               </Field>
 
               <Field label="Data">
@@ -256,8 +267,9 @@ export default function StockMovement() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold text-gray-900">{m.productName}</p>
-                      <p className="text-xs text-gray-400">
-                        {m.reason} · {fmtDate(m.date)} · {m.user}
+                      <p className="truncate text-xs text-gray-500">
+                        {m.reason}
+                        {m.party && ` · ${isEntrada ? "de" : "para"} ${m.party}`} · {fmtDate(m.date)} · {m.user}
                       </p>
                     </div>
                     <span className={`flex-shrink-0 text-sm font-bold ${isEntrada ? "text-green-600" : "text-red-600"}`}>

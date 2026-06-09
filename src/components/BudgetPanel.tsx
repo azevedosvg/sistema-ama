@@ -31,7 +31,7 @@ function BarChartWidget({ data }: { data: MonthlyFlow[] }) {
   if (!hasData) {
     return (
       <div className="flex flex-col items-center justify-center h-[180px] text-center gap-1">
-        <p className="text-sm text-gray-400">Ainda não há movimentações nos últimos meses.</p>
+        <p className="text-sm text-gray-500">Ainda não há movimentações nos últimos meses.</p>
         <p className="text-xs text-gray-300">Registre uma entrada ou saída para ver o gráfico.</p>
       </div>
     );
@@ -64,7 +64,7 @@ function BarChartWidget({ data }: { data: MonthlyFlow[] }) {
                 />
               ))}
             </div>
-            <span className="text-xs text-gray-400">{d.month}</span>
+            <span className="text-xs text-gray-500">{d.month}</span>
           </div>
         ))}
       </div>
@@ -83,16 +83,16 @@ function PieChartWidget({ data }: { data: { name: string; value: number }[] }) {
           <TrendingDown size={22} className="text-red-200" />
         </div>
         <p className="text-sm font-medium text-gray-500">Nenhuma despesa registrada</p>
-        <p className="text-xs text-gray-400 max-w-[200px]">Ao lançar despesas, elas aparecem aqui agrupadas por categoria.</p>
+        <p className="text-xs text-gray-500 max-w-[200px]">Ao lançar despesas, elas aparecem aqui agrupadas por categoria.</p>
       </div>
     );
   }
 
-  const size = 132;
+  const size = 152;
   const cx = size / 2;
   const cy = size / 2;
-  const r = 56;
-  const stroke = 18;
+  const r = 62;
+  const stroke = 20;
   const circ = 2 * Math.PI * r;
 
   let offset = 0;
@@ -106,54 +106,54 @@ function PieChartWidget({ data }: { data: { name: string; value: number }[] }) {
   const top = slices[0];
 
   return (
-    <div className="flex flex-col items-center gap-5">
-      {/* Donut */}
-      <div className="relative">
-        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
-          <circle cx={cx} cy={cy} r={r} fill="none" stroke="#f1f5f9" strokeWidth={stroke} />
-          {slices.map((s, i) => (
-            <circle
-              key={i}
-              cx={cx}
-              cy={cy}
-              r={r}
-              fill="none"
-              stroke={s.color}
-              strokeWidth={stroke}
-              strokeDasharray={`${s.frac * circ} ${circ}`}
-              style={{ strokeDashoffset: -s.offset * circ }}
-              strokeLinecap="butt"
-            >
-              <title>{s.name}: {BRL(s.value)} ({Math.round(s.frac * 100)}%)</title>
-            </circle>
-          ))}
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className="text-[10px] uppercase tracking-wide text-gray-400 leading-none">Total gasto</span>
-          <span className="text-sm font-bold text-gray-800 leading-tight mt-0.5">{BRL(total)}</span>
+    <div className="flex gap-5 items-start">
+      {/* Left: donut + maior gasto */}
+      <div className="flex flex-col items-center gap-3 flex-shrink-0">
+        <div className="relative">
+          <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="-rotate-90">
+            <circle cx={cx} cy={cy} r={r} fill="none" stroke="#f1f5f9" strokeWidth={stroke} />
+            {slices.map((s, i) => (
+              <circle
+                key={i}
+                cx={cx}
+                cy={cy}
+                r={r}
+                fill="none"
+                stroke={s.color}
+                strokeWidth={stroke}
+                strokeDasharray={`${s.frac * circ} ${circ}`}
+                style={{ strokeDashoffset: -s.offset * circ }}
+                strokeLinecap="butt"
+              >
+                <title>{s.name}: {BRL(s.value)} ({Math.round(s.frac * 100)}%)</title>
+              </circle>
+            ))}
+          </svg>
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <span className="text-[10px] uppercase tracking-wide text-gray-500 leading-none">Total</span>
+            <span className="text-sm font-bold text-gray-800 leading-tight mt-0.5">{BRL(total)}</span>
+          </div>
+        </div>
+
+        {/* Biggest category highlight */}
+        <div className="w-full rounded-xl border border-red-100 bg-red-50/60 px-3 py-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-red-400">Maior gasto</p>
+          <p className="text-xs font-semibold text-gray-700 truncate mt-0.5">{top.name}</p>
+          <p className="text-sm font-bold text-red-600">{Math.round(top.frac * 100)}%</p>
         </div>
       </div>
 
-      {/* Biggest category highlight */}
-      <div className="w-full rounded-xl border border-red-100 bg-red-50/60 px-3 py-2">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-red-400">Maior gasto</p>
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-semibold text-gray-700 truncate">{top.name}</span>
-          <span className="text-sm font-bold text-red-600">{Math.round(top.frac * 100)}%</span>
-        </div>
-      </div>
-
-      {/* Ranked categories with proportion bars */}
-      <div className="w-full space-y-2.5">
+      {/* Right: ranked categories */}
+      <div className="flex-1 min-w-0 space-y-2.5 pt-1">
         {slices.map((s, i) => (
           <div key={i} className="space-y-1">
             <div className="flex items-center justify-between text-xs">
-              <div className="flex items-center gap-2 min-w-0">
-                <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: s.color }} />
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: s.color }} />
                 <span className="text-gray-600 truncate">{s.name}</span>
               </div>
-              <span className="font-semibold text-gray-700 flex-shrink-0">
-                {BRL(s.value)} <span className="text-gray-400 font-normal">· {Math.round(s.frac * 100)}%</span>
+              <span className="font-semibold text-gray-700 flex-shrink-0 ml-1">
+                {Math.round(s.frac * 100)}%
               </span>
             </div>
             <div className="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
@@ -190,7 +190,7 @@ function TxRow({ tx, onDelete }: { tx: Transaction; onDelete: (id: number) => vo
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-gray-800 truncate">{tx.description}</p>
-        <p className="text-xs text-gray-400">{cfg.label} · {tx.category} · {formatted}</p>
+        <p className="text-xs text-gray-500">{cfg.label} · {tx.category} · {formatted}</p>
       </div>
       <div className="flex items-center gap-2">
         <span className={`text-sm font-bold ${tx.type === "despesa" ? "text-red-600" : tx.type === "doacao" ? "text-amber-600" : "text-green-700"}`}>
@@ -225,7 +225,7 @@ function FormulaCard({
       </div>
       <p className={`mt-2 text-lg font-bold leading-tight ${valueColor}`}>{value}</p>
       <p className="text-xs font-medium text-gray-600">{label}</p>
-      <p className="text-[11px] text-gray-400 leading-tight">{hint}</p>
+      <p className="text-[11px] text-gray-500 leading-tight">{hint}</p>
     </div>
   );
 }
@@ -258,7 +258,7 @@ export default function BudgetPanel({ summary, transactions, showForm, formData,
             <div className="w-1 h-7 bg-amber-400 rounded-full flex-shrink-0" />
             <div>
               <h2 className="text-lg font-bold text-gray-900">Controle Financeiro</h2>
-              <p className="text-sm text-gray-400">Acompanhe o dinheiro da instituição</p>
+              <p className="text-sm text-gray-500">Acompanhe o dinheiro da instituição</p>
             </div>
           </div>
           <motion.button
@@ -283,7 +283,7 @@ export default function BudgetPanel({ summary, transactions, showForm, formData,
               </div>
               <div>
                 <p className="text-sm font-bold text-gray-800">Como funciona o controle financeiro</p>
-                <p className="text-xs text-gray-400">Tudo que entra e sai do caixa da instituição</p>
+                <p className="text-xs text-gray-500">Tudo que entra e sai do caixa da instituição</p>
               </div>
             </div>
 
@@ -301,7 +301,7 @@ export default function BudgetPanel({ summary, transactions, showForm, formData,
                         {cfg.label}
                         <span className={`text-xs font-bold ${signCls}`}>{sign}</span>
                       </p>
-                      <p className="text-[11px] leading-snug text-gray-400">{desc}</p>
+                      <p className="text-[11px] leading-snug text-gray-500">{desc}</p>
                     </div>
                   </div>
                 );
@@ -310,12 +310,12 @@ export default function BudgetPanel({ summary, transactions, showForm, formData,
 
             {/* Formula */}
             <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-              <span className="text-gray-400">Saldo em caixa</span>
+              <span className="text-gray-500">Saldo em caixa</span>
               <span className="text-gray-300">=</span>
               <span className="rounded-md bg-green-100 px-2 py-0.5 font-semibold text-green-700">Receitas</span>
-              <span className="font-bold text-gray-400">+</span>
+              <span className="font-bold text-gray-500">+</span>
               <span className="rounded-md bg-amber-100 px-2 py-0.5 font-semibold text-amber-700">Doações</span>
-              <span className="font-bold text-gray-400">−</span>
+              <span className="font-bold text-gray-500">−</span>
               <span className="rounded-md bg-red-100 px-2 py-0.5 font-semibold text-red-600">Despesas</span>
             </div>
           </div>
@@ -331,7 +331,7 @@ export default function BudgetPanel({ summary, transactions, showForm, formData,
             >
               <form onSubmit={onSubmit} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                 <p className="text-sm font-bold text-gray-800">Nova movimentação</p>
-                <p className="text-xs text-gray-400 mb-4">{TYPE_CONFIG[formData.type].help}</p>
+                <p className="text-xs text-gray-500 mb-4">{TYPE_CONFIG[formData.type].help}</p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                   <div className="flex flex-col gap-1">
                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Tipo</label>
@@ -383,7 +383,7 @@ export default function BudgetPanel({ summary, transactions, showForm, formData,
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <h3 className="text-base font-bold text-gray-900">Resumo do Caixa</h3>
-              <p className="text-xs text-gray-400">Quanto a instituição tem disponível hoje</p>
+              <p className="text-xs text-gray-500">Quanto a instituição tem disponível hoje</p>
             </div>
             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${balancePositive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
               {balancePositive ? "Saldo positivo" : "Saldo negativo"}
@@ -399,7 +399,7 @@ export default function BudgetPanel({ summary, transactions, showForm, formData,
               <p className={`text-3xl sm:text-4xl font-extrabold leading-none ${balancePositive ? "text-blue-800" : "text-red-600"}`}>
                 {BRL(summary.balance)}
               </p>
-              <p className="text-xs text-gray-400 mt-1">Saldo atual em caixa</p>
+              <p className="text-xs text-gray-500 mt-1">Saldo atual em caixa</p>
             </div>
           </div>
 
@@ -432,7 +432,7 @@ export default function BudgetPanel({ summary, transactions, showForm, formData,
           <div className="h-1 bg-linear-to-r from-blue-700 to-blue-400" />
           <div className="p-6">
             <h3 className="text-base font-bold text-gray-900 mb-1">Fluxo Mensal</h3>
-            <p className="text-xs text-gray-400 mb-3">Compare entradas, gastos e doações nos últimos 6 meses</p>
+            <p className="text-xs text-gray-500 mb-3">Compare entradas, gastos e doações nos últimos 6 meses</p>
             <div className="flex flex-wrap items-center gap-4 mb-4 text-xs text-gray-500">
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-blue-500 inline-block" /> Entradas</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-sm bg-red-400 inline-block" /> Gastos</span>
@@ -446,7 +446,7 @@ export default function BudgetPanel({ summary, transactions, showForm, formData,
           <div className="h-1 bg-linear-to-r from-amber-400 to-amber-300" />
           <div className="p-6">
             <h3 className="text-base font-bold text-gray-900 mb-1">Para onde vai o dinheiro</h3>
-            <p className="text-xs text-gray-400 mb-4">Despesas agrupadas por categoria</p>
+            <p className="text-xs text-gray-500 mb-4">Despesas agrupadas por categoria</p>
             <PieChartWidget data={summary.expensesByCategory} />
           </div>
         </div>
@@ -457,7 +457,7 @@ export default function BudgetPanel({ summary, transactions, showForm, formData,
         <div className="h-1 bg-linear-to-r from-blue-700 via-amber-400 to-blue-500" />
         <div className="p-6">
           <h3 className="text-base font-bold text-gray-900 mb-1">Movimentações Recentes</h3>
-          <p className="text-xs text-gray-400 mb-4">
+          <p className="text-xs text-gray-500 mb-4">
             {transactions.length === 0
               ? "Todo registro lançado aparece aqui"
               : `Exibindo as últimas ${Math.min(transactions.length, 12)} de ${transactions.length} movimentações`}
@@ -468,7 +468,7 @@ export default function BudgetPanel({ summary, transactions, showForm, formData,
                 <Wallet size={22} className="text-blue-300" />
               </div>
               <p className="text-sm text-gray-500 font-medium">Nenhuma movimentação ainda</p>
-              <p className="text-xs text-gray-400 max-w-xs">Clique em “Nova movimentação” acima para registrar a primeira receita, despesa ou doação.</p>
+              <p className="text-xs text-gray-500 max-w-xs">Clique em “Nova movimentação” acima para registrar a primeira receita, despesa ou doação.</p>
             </div>
           ) : (
             transactions.slice(0, 12).map(tx => <TxRow key={tx.id} tx={tx} onDelete={onDelete} />)

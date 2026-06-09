@@ -1,5 +1,5 @@
 import { motion, type Variants } from "framer-motion";
-import { CalendarDays, Gift, Package, Pencil, Tag, Trash2, TrendingDown } from "lucide-react";
+import { AlertTriangle, CalendarDays, Gift, Package, Pencil, Tag, Trash2, TrendingDown } from "lucide-react";
 import type { Product } from "../types/product";
 
 const STATUS_CONFIG: Record<
@@ -99,11 +99,13 @@ export default function ProductCard({ product, onEdit, onDelete }: Props) {
       <div className="px-4 py-3 flex flex-col gap-3 flex-1">
         {/* Stats */}
         <div className="grid grid-cols-2 gap-2">
-          <div className="flex items-center gap-2.5 bg-gray-50 rounded-xl px-3 py-2.5">
-            <Package size={14} className="text-gray-400 flex-shrink-0" />
+          <div className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 ${product.lowStock ? "bg-orange-50" : "bg-gray-50"}`}>
+            <Package size={14} className={`flex-shrink-0 ${product.lowStock ? "text-orange-500" : "text-gray-400"}`} />
             <div>
               <p className="text-[10px] text-gray-400 leading-none mb-0.5">Quantidade</p>
-              <p className="font-bold text-gray-800 text-sm leading-none">{product.quantity} un.</p>
+              <p className={`font-bold text-sm leading-none ${product.lowStock ? "text-orange-700" : "text-gray-800"}`}>
+                {product.quantity} un.
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2.5 bg-gray-50 rounded-xl px-3 py-2.5">
@@ -126,6 +128,14 @@ export default function ProductCard({ product, onEdit, onDelete }: Props) {
           <div className={`flex items-center gap-1.5 text-xs font-medium ${config.expiryColor}`}>
             <CalendarDays size={12} />
             <span>{label}</span>
+          </div>
+        )}
+
+        {/* Low stock warning */}
+        {product.lowStock && (
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-orange-700 bg-orange-50 rounded-xl px-3 py-2 border border-orange-100">
+            <AlertTriangle size={13} />
+            <span>Estoque baixo · mínimo {product.minStock} un.</span>
           </div>
         )}
 

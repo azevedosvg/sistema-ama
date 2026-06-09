@@ -47,9 +47,14 @@ export default function Overview({ onNavigate }: Props) {
     const balance =
       transactions.reduce((s, t) => s + (t.type === "despesa" ? -t.amount : t.amount), 0);
 
+    // Itens que exigem atenção: vencidos/críticos (por validade) e estoque baixo.
     const atRisk = products
-      .filter((p) => p.status === "expired" || p.status === "critical")
-      .sort((a, b) => a.daysToExpire - b.daysToExpire)
+      .filter((p) => p.status === "expired" || p.status === "critical" || p.lowStock)
+      .sort((a, b) => {
+        const sev = (p: (typeof products)[number]) =>
+          p.status === "expired" ? 0 : p.status === "critical" ? 1 : 2;
+        return sev(a) - sev(b) || a.daysToExpire - b.daysToExpire;
+      })
       .slice(0, 5);
 
     const entradas = movements.filter((m) => m.type === "entrada").reduce((s, m) => s + m.quantity, 0);
@@ -107,7 +112,7 @@ export default function Overview({ onNavigate }: Props) {
         <div className="h-7 w-1 flex-shrink-0 rounded-full bg-amber-400" />
         <div>
           <h2 className="text-lg font-bold text-gray-900">Visão Geral</h2>
-          <p className="text-sm text-gray-400">Resumo consolidado do estoque, finanças e atividades</p>
+          <p className="text-sm text-gray-500">Resumo consolidado do estoque, finanças e atividades</p>
         </div>
       </div>
 
@@ -161,28 +166,33 @@ export default function Overview({ onNavigate }: Props) {
           </div>
           <div className="p-3">
             {data.atRisk.length === 0 ? (
-              <p className="px-3 py-8 text-center text-sm text-gray-400">
+              <p className="px-3 py-8 text-center text-sm text-gray-500">
                 Nenhum item vencido ou crítico. Tudo sob controle! 🎉
               </p>
             ) : (
               <ul className="divide-y divide-gray-50">
                 {data.atRisk.map((p) => {
                   const expired = p.status === "expired";
+                  const critical = p.status === "critical";
+                  // Item só com estoque baixo (sem alerta de validade) ganha rótulo próprio
+                  const lowOnly = !expired && !critical && p.lowStock;
+                  const badge = expired
+                    ? { dot: "bg-red-500", chip: "bg-red-50 text-red-600", text: "Vencido" }
+                    : critical
+                      ? { dot: "bg-orange-500", chip: "bg-orange-50 text-orange-600", text: `${p.daysToExpire}d` }
+                      : { dot: "bg-amber-500", chip: "bg-amber-50 text-amber-700", text: "Estoque baixo" };
                   return (
                     <li key={p.id} className="flex items-center gap-3 px-3 py-2.5">
-                      <span
-                        className={`h-2.5 w-2.5 flex-shrink-0 rounded-full ${expired ? "bg-red-500" : "bg-orange-500"}`}
-                      />
+                      <span className={`h-2.5 w-2.5 flex-shrink-0 rounded-full ${badge.dot}`} />
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium text-gray-800">{p.name}</p>
-                        <p className="text-xs text-gray-400">{p.category} · {p.quantity} un.</p>
+                        <p className="text-xs text-gray-500">
+                          {p.category} · {p.quantity} un.
+                          {lowOnly && p.minStock > 0 && ` · mín. ${p.minStock}`}
+                        </p>
                       </div>
-                      <span
-                        className={`flex-shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
-                          expired ? "bg-red-50 text-red-600" : "bg-orange-50 text-orange-600"
-                        }`}
-                      >
-                        {expired ? "Vencido" : `${p.daysToExpire}d`}
+                      <span className={`flex-shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${badge.chip}`}>
+                        {badge.text}
                       </span>
                     </li>
                   );
@@ -209,7 +219,7 @@ export default function Overview({ onNavigate }: Props) {
           </div>
           <div className="p-3">
             {data.recentActivities.length === 0 ? (
-              <p className="px-3 py-8 text-center text-sm text-gray-400">Nenhuma atividade registrada ainda.</p>
+              <p className="px-3 py-8 text-center text-sm text-gray-500">Nenhuma atividade registrada ainda.</p>
             ) : (
               <ul className="divide-y divide-gray-50">
                 {data.recentActivities.map((a) => {

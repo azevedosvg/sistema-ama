@@ -83,14 +83,14 @@ export default function Login() {
           <div className="lg:hidden flex flex-col items-center text-center mb-8">
             <Logo size={88} badge className="mb-3 rounded-2xl shadow-md" />
             <h1 className="text-2xl font-extrabold text-blue-700">AMA</h1>
-            <p className="text-gray-400 text-sm">Amigos Mãos Abertas</p>
+            <p className="text-gray-500 text-sm">Amigos Mãos Abertas</p>
           </div>
 
           <div className="bg-white rounded-2xl shadow-sm border border-blue-100 overflow-hidden">
             <div className="h-1 bg-linear-to-r from-blue-700 via-amber-400 to-blue-500" />
             <div className="p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-1">Bem-vindo de volta</h2>
-              <p className="text-gray-400 text-sm mb-7">Faça login para acessar o sistema</p>
+              <p className="text-gray-500 text-sm mb-7">Faça login para acessar o sistema</p>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
@@ -120,7 +120,7 @@ export default function Login() {
                       onClick={() => setShowPassword((v) => !v)}
                       aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                       title={showPassword ? "Ocultar senha" : "Mostrar senha"}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-blue-600 transition-colors"
                     >
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
@@ -149,13 +149,19 @@ export default function Login() {
                 </motion.button>
               </form>
 
+              <div className="mt-5 rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-xs text-gray-500 space-y-1">
+                <p className="font-semibold text-gray-600 mb-1.5">Credenciais de demonstração</p>
+                <p><span className="font-medium text-gray-700">Admin:</span> admin@ama.org · admin123</p>
+                <p><span className="font-medium text-gray-700">Voluntário:</span> ana.voluntaria@ama.org · senha123</p>
+              </div>
+
               <div className="flex items-center gap-3 my-6">
                 <div className="flex-1 h-px bg-gray-100" />
-                <span className="text-xs text-gray-400">ou</span>
+                <span className="text-xs text-gray-500">ou</span>
                 <div className="flex-1 h-px bg-gray-100" />
               </div>
 
-              <p className="text-center text-sm text-gray-400">
+              <p className="text-center text-sm text-gray-500">
                 Não tem conta?{" "}
                 <Link to="/register" className="text-blue-700 font-semibold hover:underline">
                   Cadastrar
@@ -164,7 +170,7 @@ export default function Login() {
             </div>
           </div>
 
-          <p className="text-center text-xs text-gray-400 mt-6">
+          <p className="text-center text-xs text-gray-500 mt-6">
             AMA · Amigos Mãos Abertas · Sistema de Gestão
           </p>
         </motion.div>

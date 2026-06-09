@@ -60,7 +60,7 @@ export default function Modal({ open, title, subtitle, onClose, children, maxWid
             <div className="flex items-start justify-between gap-4 px-6 pt-5 pb-3">
               <div>
                 <h2 className="text-lg font-bold text-gray-900">{title}</h2>
-                {subtitle && <p className="mt-0.5 text-sm text-gray-400">{subtitle}</p>}
+                {subtitle && <p className="mt-0.5 text-sm text-gray-500">{subtitle}</p>}
               </div>
               <button
                 type="button"

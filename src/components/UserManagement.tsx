@@ -40,7 +40,7 @@ export default function UserManagement() {
         <div className="h-7 w-1 flex-shrink-0 rounded-full bg-amber-400" />
         <div>
           <h2 className="text-lg font-bold text-gray-900">Gestão de Usuários</h2>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-gray-500">
             Defina papéis e gerencie quem tem acesso administrativo ao sistema
           </p>
         </div>

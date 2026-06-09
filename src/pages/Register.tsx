@@ -73,12 +73,12 @@ export default function Register() {
           <div className="lg:hidden text-center mb-8">
             <div className="text-4xl mb-2">🤲</div>
             <h1 className="text-2xl font-extrabold text-blue-700">AMA</h1>
-            <p className="text-gray-400 text-sm">Amigos Mãos Abertas</p>
+            <p className="text-gray-500 text-sm">Amigos Mãos Abertas</p>
           </div>
 
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-1">Criar conta</h2>
-            <p className="text-gray-400 text-sm mb-7">Preencha os dados para se cadastrar</p>
+            <p className="text-gray-500 text-sm mb-7">Preencha os dados para se cadastrar</p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -109,7 +109,7 @@ export default function Register() {
                     onClick={() => setShowPassword((v) => !v)}
                     aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
                     title={showPassword ? "Ocultar senha" : "Mostrar senha"}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-blue-600 transition-colors"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -138,7 +138,7 @@ export default function Register() {
               </motion.button>
             </form>
 
-            <p className="text-center text-sm text-gray-400 mt-6">
+            <p className="text-center text-sm text-gray-500 mt-6">
               Já tem conta?{" "}
               <Link to="/login" className="text-blue-700 font-semibold hover:underline">
                 Entrar

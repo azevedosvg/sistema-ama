@@ -134,6 +134,19 @@ export default function ProductForm({
             />
           </Field>
 
+          <Field label="Estoque mínimo" error={fieldErrors.minStock}>
+            <input
+              name="minStock"
+              type="number"
+              placeholder="0 (sem alerta)"
+              min="0"
+              value={formData.minStock}
+              onChange={onInputChange}
+              className={fieldErrors.minStock ? errorInputClass : inputClass}
+              title="Quantidade a partir da qual o item é sinalizado como estoque baixo. Deixe 0 para não alertar."
+            />
+          </Field>
+
           <AnimatePresence mode="wait">
             {!formData.isDonation && (
               <motion.div

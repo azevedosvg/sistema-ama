@@ -11,6 +11,7 @@ const EMPTY_FORM: FormData = {
   unitCost: "",
   expirationDate: "",
   isDonation: false,
+  minStock: "",
 };
 
 const EMPTY_ERRORS: FieldErrors = {
@@ -19,6 +20,7 @@ const EMPTY_ERRORS: FieldErrors = {
   quantity: "",
   unitCost: "",
   expirationDate: "",
+  minStock: "",
 };
 
 const PAGE_SIZE = 6;
@@ -33,12 +35,13 @@ export function useProducts() {
   const [feedbackType, setFeedbackType] = useState<"success" | "error" | "">("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>(EMPTY_ERRORS);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"" | Product["status"]>("");
+  const [statusFilter, setStatusFilter] = useState<"" | Product["status"] | "low">("");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [sortOption, setSortOption] = useState<
     "" | "name" | "quantity" | "expirationDate" | "riskValue"
   >("");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [pendingDeleteId, setPendingDeleteId] = useState<number | null>(null);
 
   useEffect(() => {
     refresh();
@@ -82,6 +85,8 @@ export function useProducts() {
       errors.unitCost = "Custo unitário deve ser maior que zero";
     if (isPerishable(formData.category) && !formData.expirationDate)
       errors.expirationDate = "Data de validade é obrigatória";
+    if (formData.minStock && Number(formData.minStock) < 0)
+      errors.minStock = "Estoque mínimo não pode ser negativo";
     setFieldErrors(errors);
     return errors;
   }
@@ -107,6 +112,7 @@ export function useProducts() {
       unitCost: formData.isDonation ? 0 : Number(formData.unitCost),
       expirationDate: formData.expirationDate,
       isDonation: formData.isDonation,
+      minStock: formData.minStock ? Number(formData.minStock) : 0,
     };
 
     if (editingProductId !== null) {
@@ -136,15 +142,27 @@ export function useProducts() {
       unitCost: product.isDonation ? "" : String(product.unitCost),
       expirationDate: product.expirationDate,
       isDonation: product.isDonation,
+      minStock: product.minStock ? String(product.minStock) : "",
     });
     setEditingProductId(product.id);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function handleDeleteProduct(id: number) {
-    if (!window.confirm("Deseja realmente excluir este produto?")) return;
-    deleteProduct(id);
-    refresh();
+  // Exclusão em duas etapas — abre o ConfirmDialog em vez do window.confirm nativo
+  function requestDeleteProduct(id: number) {
+    setPendingDeleteId(id);
+  }
+
+  function cancelDeleteProduct() {
+    setPendingDeleteId(null);
+  }
+
+  function confirmDeleteProduct() {
+    if (pendingDeleteId !== null) {
+      deleteProduct(pendingDeleteId);
+      refresh();
+    }
+    setPendingDeleteId(null);
   }
 
   const displayedProducts = products
@@ -152,7 +170,11 @@ export function useProducts() {
       const matchesSearch =
         product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.category.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesStatus = statusFilter ? product.status === statusFilter : true;
+      const matchesStatus = statusFilter
+        ? statusFilter === "low"
+          ? product.lowStock
+          : product.status === statusFilter
+        : true;
       const matchesCategory = categoryFilter ? product.category === categoryFilter : true;
       return matchesSearch && matchesStatus && matchesCategory;
     })
@@ -170,6 +192,7 @@ export function useProducts() {
 
   const visibleProducts = displayedProducts.slice(0, visibleCount);
   const hasMore = displayedProducts.length > visibleCount;
+  const pendingDeleteProduct = products.find((p) => p.id === pendingDeleteId) ?? null;
 
   function showMore() {
     setVisibleCount((prev) => prev + PAGE_SIZE);
@@ -198,6 +221,9 @@ export function useProducts() {
     handleInputChange,
     handleSubmitProduct,
     handleEditProduct,
-    handleDeleteProduct,
+    requestDeleteProduct,
+    confirmDeleteProduct,
+    cancelDeleteProduct,
+    pendingDeleteProduct,
   };
 }

@@ -1,5 +1,5 @@
 import { motion, type Variants } from "framer-motion";
-import { AlertTriangle, CheckCircle2, Clock, Package, ShieldAlert, TrendingDown } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock, Package, PackageMinus, ShieldAlert, TrendingDown } from "lucide-react";
 import type { DashboardData } from "../types/product";
 
 type Props = { data: DashboardData };
@@ -126,6 +126,16 @@ export default function Dashboard({ data }: Props) {
               </div>
             ))}
           </div>
+
+          {data.lowStockProducts > 0 && (
+            <div className="relative mt-4 flex items-center gap-2 rounded-xl bg-amber-400/20 px-3 py-2 ring-1 ring-amber-300/40">
+              <PackageMinus size={15} className="flex-shrink-0 text-amber-200" />
+              <span className="text-xs font-medium text-amber-100">
+                <span className="font-bold text-white">{data.lowStockProducts}</span>{" "}
+                {data.lowStockProducts === 1 ? "item com estoque baixo" : "itens com estoque baixo"}
+              </span>
+            </div>
+          )}
         </div>
       </motion.div>
 

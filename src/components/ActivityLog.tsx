@@ -173,7 +173,7 @@ export default function ActivityLog() {
         <div className="w-1 h-7 bg-amber-400 rounded-full flex-shrink-0" />
         <div>
           <h2 className="text-lg font-bold text-gray-900">Histórico de Alterações</h2>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-gray-500">
             Quem entrou, quem saiu e tudo o que foi cadastrado, editado ou removido
           </p>
         </div>

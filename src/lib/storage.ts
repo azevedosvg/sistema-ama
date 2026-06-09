@@ -5,10 +5,10 @@ import type { StockMovement } from "../types/movement";
 import type { AppUser, UserRole } from "../types/user";
 import { enrich } from "./productUtils";
 
-type StoredProduct = Omit<Product, "status" | "daysToExpire" | "riskValue">;
+type StoredProduct = Omit<Product, "status" | "daysToExpire" | "riskValue" | "lowStock">;
 type User = { email: string; password: string; role: UserRole; createdAt: string };
 
-const SEED_VERSION = "v3";
+const SEED_VERSION = "v7";
 
 const KEYS = {
   products: "ama_products",
@@ -100,18 +100,20 @@ const PRODUCT_FIELD_LABELS: Record<keyof StoredProduct, string> = {
   unitCost: "Custo unitário",
   expirationDate: "Validade",
   isDonation: "Doação",
+  minStock: "Estoque mínimo",
 };
 
 function fmtProductValue(field: keyof StoredProduct, value: unknown): string {
   if (field === "unitCost") return `R$ ${Number(value).toFixed(2)}`;
   if (field === "isDonation") return value ? "Sim" : "Não";
   if (field === "expirationDate") return value ? String(value) : "—";
+  if (field === "minStock") return Number(value) > 0 ? String(value) : "—";
   return String(value);
 }
 
 function diffProduct(prev: StoredProduct, next: StoredProduct): FieldChange[] {
   const fields: (keyof StoredProduct)[] = [
-    "name", "category", "quantity", "unitCost", "expirationDate", "isDonation",
+    "name", "category", "quantity", "unitCost", "expirationDate", "isDonation", "minStock",
   ];
   const changes: FieldChange[] = [];
   for (const f of fields) {
@@ -129,21 +131,27 @@ function diffProduct(prev: StoredProduct, next: StoredProduct): FieldChange[] {
 
 // ─── Product Seed ─────────────────────────────────────────────────────────────
 
-const PRODUCT_SEED: StoredProduct[] = [
+// Ponto de reposição padrão para os dados de exemplo: ~25% da quantidade inicial,
+// com piso de 6 unidades — assim itens com pouco estoque já aparecem como "estoque baixo".
+function defaultMinStock(quantity: number): number {
+  return Math.max(6, Math.round(quantity * 0.25));
+}
+
+const PRODUCT_SEED_BASE: Omit<StoredProduct, "minStock">[] = [
   // Alimentos — vencimentos variados (expired, critical, attention, safe)
   { id: 1,  name: "Leite Integral 1L",          category: "Alimentos",             quantity: 48,  unitCost: 4.89,  expirationDate: "2026-07-22", isDonation: false },
-  { id: 2,  name: "Feijão Carioca 1kg",          category: "Alimentos",             quantity: 72,  unitCost: 9.50,  expirationDate: "2026-06-04", isDonation: false },
+  { id: 2,  name: "Feijão Carioca 1kg",          category: "Alimentos",             quantity: 72,  unitCost: 9.50,  expirationDate: "2026-09-12", isDonation: false },
   { id: 3,  name: "Arroz Tipo 1 5kg",            category: "Alimentos",             quantity: 30,  unitCost: 29.90, expirationDate: "2027-04-10", isDonation: false },
   { id: 4,  name: "Macarrão Espaguete 500g",     category: "Alimentos",             quantity: 90,  unitCost: 4.20,  expirationDate: "2026-09-01", isDonation: false },
-  { id: 5,  name: "Óleo de Soja 900ml",          category: "Alimentos",             quantity: 24,  unitCost: 7.80,  expirationDate: "2026-05-30", isDonation: false },
+  { id: 5,  name: "Óleo de Soja 900ml",          category: "Alimentos",             quantity: 24,  unitCost: 7.80,  expirationDate: "2026-11-18", isDonation: false },
   { id: 6,  name: "Açúcar Cristal 2kg",          category: "Alimentos",             quantity: 36,  unitCost: 6.90,  expirationDate: "2027-02-14", isDonation: false },
   { id: 7,  name: "Farinha de Trigo 1kg",        category: "Alimentos",             quantity: 40,  unitCost: 5.40,  expirationDate: "2026-11-30", isDonation: false },
-  { id: 8,  name: "Molho de Tomate 340g",        category: "Alimentos",             quantity: 55,  unitCost: 3.20,  expirationDate: "2026-05-20", isDonation: false },
+  { id: 8,  name: "Molho de Tomate 340g",        category: "Alimentos",             quantity: 18,  unitCost: 3.20,  expirationDate: "2026-06-13", isDonation: false },
   { id: 9,  name: "Sardinha em Lata 125g",       category: "Alimentos",             quantity: 38,  unitCost: 5.60,  expirationDate: "2028-03-01", isDonation: false },
-  { id: 10, name: "Sal Refinado 1kg",            category: "Alimentos",             quantity: 50,  unitCost: 2.50,  expirationDate: "2028-12-31", isDonation: false },
+  { id: 10, name: "Sal Refinado 1kg",            category: "Alimentos",             quantity: 12,  unitCost: 2.50,  expirationDate: "2026-05-10", isDonation: false },
   // Bebidas
-  { id: 11, name: "Achocolatado em Pó 400g",     category: "Bebidas",               quantity: 18,  unitCost: 15.90, expirationDate: "2026-06-10", isDonation: false },
-  { id: 12, name: "Leite em Pó Integral 400g",   category: "Bebidas",               quantity: 12,  unitCost: 19.90, expirationDate: "2026-06-01", isDonation: false },
+  { id: 11, name: "Achocolatado em Pó 400g",     category: "Bebidas",               quantity: 18,  unitCost: 15.90, expirationDate: "2026-10-14", isDonation: false },
+  { id: 12, name: "Leite em Pó Integral 400g",   category: "Bebidas",               quantity: 12,  unitCost: 19.90, expirationDate: "2026-09-28", isDonation: false },
   { id: 13, name: "Suco de Laranja 1L",          category: "Bebidas",               quantity: 24,  unitCost: 8.50,  expirationDate: "2026-07-15", isDonation: false },
   { id: 14, name: "Café Torrado e Moído 500g",   category: "Bebidas",               quantity: 20,  unitCost: 18.50, expirationDate: "2026-10-20", isDonation: false },
   // Higiene e Limpeza
@@ -154,10 +162,10 @@ const PRODUCT_SEED: StoredProduct[] = [
   { id: 19, name: "Shampoo Infantil 200ml",      category: "Higiene e Limpeza",     quantity: 25,  unitCost: 8.90,  expirationDate: "2027-09-10", isDonation: false },
   { id: 20, name: "Desinfetante 500ml",          category: "Higiene e Limpeza",     quantity: 40,  unitCost: 4.20,  expirationDate: "2027-11-30", isDonation: false },
   // Medicamentos
-  { id: 21, name: "Dipirona 500mg cx 10cp",      category: "Medicamentos",          quantity: 20,  unitCost: 8.90,  expirationDate: "2026-06-03", isDonation: false },
+  { id: 21, name: "Dipirona 500mg cx 10cp",      category: "Medicamentos",          quantity: 20,  unitCost: 8.90,  expirationDate: "2026-11-22", isDonation: false },
   { id: 22, name: "Vitamina C 1g Efervescente",  category: "Medicamentos",          quantity: 30,  unitCost: 13.50, expirationDate: "2027-08-01", isDonation: false },
   { id: 23, name: "Pomada Cicatrizante 30g",     category: "Medicamentos",          quantity: 12,  unitCost: 16.90, expirationDate: "2027-01-15", isDonation: false },
-  { id: 24, name: "Soro Fisiológico 250ml",      category: "Medicamentos",          quantity: 18,  unitCost: 5.50,  expirationDate: "2026-05-15", isDonation: false },
+  { id: 24, name: "Soro Fisiológico 250ml",      category: "Medicamentos",          quantity: 18,  unitCost: 5.50,  expirationDate: "2026-12-10", isDonation: false },
   // Roupas — doação
   { id: 25, name: "Camiseta Infantil 4-6 anos",  category: "Roupas",                quantity: 34,  unitCost: 0, expirationDate: "", isDonation: true },
   { id: 26, name: "Calça Jeans Masculina G",     category: "Roupas",                quantity: 12,  unitCost: 0, expirationDate: "", isDonation: true },
@@ -190,53 +198,61 @@ const PRODUCT_SEED: StoredProduct[] = [
   { id: 47, name: "Mesa de Estudos Infantil",    category: "Móveis",                quantity: 1,   unitCost: 0, expirationDate: "", isDonation: true },
 ];
 
+const PRODUCT_SEED: StoredProduct[] = PRODUCT_SEED_BASE.map((p) => ({
+  ...p,
+  minStock: defaultMinStock(p.quantity),
+}));
+
 // ─── Transaction Seed ─────────────────────────────────────────────────────────
 
 const TRANSACTION_SEED: Transaction[] = [
   // Janeiro 2026
-  { id: 1,  type: "receita",  amount: 2800.00, description: "Evento de Ano Novo — Jantar Beneficente",      category: "Evento de Arrecadação",  date: "2026-01-08" },
-  { id: 2,  type: "doacao",   amount: 1500.00, description: "Doação Empresa Construtora Leal",              category: "Empresa",                date: "2026-01-12" },
-  { id: 3,  type: "despesa",  amount: 1180.00, description: "Compra de alimentos básicos — Atacadão",       category: "Compra de Estoque",       date: "2026-01-14" },
-  { id: 4,  type: "despesa",  amount: 430.00,  description: "Compra itens de higiene — Distribuidora",      category: "Compra de Estoque",       date: "2026-01-16" },
-  { id: 5,  type: "despesa",  amount: 175.00,  description: "Frete entrega de doações — Motoboy",           category: "Logística e Transporte",  date: "2026-01-20" },
-  { id: 6,  type: "receita",  amount: 600.00,  description: "Mensalidades voluntários jan/26",              category: "Mensalidades",           date: "2026-01-31" },
+  { id: 1,  type: "receita",  amount: 420.00,  description: "Evento de Ano Novo — Jantar Beneficente",      category: "Evento de Arrecadação",  date: "2026-01-08" },
+  { id: 2,  type: "doacao",   amount: 230.00,  description: "Doação Empresa Construtora Leal",              category: "Empresa",                date: "2026-01-12" },
+  { id: 3,  type: "despesa",  amount: 210.00,  description: "Compra de alimentos básicos — Atacadão",       category: "Compra de Estoque",       date: "2026-01-14" },
+  { id: 4,  type: "despesa",  amount: 85.00,   description: "Compra itens de higiene — Distribuidora",      category: "Compra de Estoque",       date: "2026-01-16" },
+  { id: 5,  type: "despesa",  amount: 30.00,   description: "Frete entrega de doações — Motoboy",           category: "Logística e Transporte",  date: "2026-01-20" },
+  { id: 6,  type: "receita",  amount: 120.00,  description: "Mensalidades voluntários jan/26",              category: "Mensalidades",           date: "2026-01-31" },
   // Fevereiro 2026
-  { id: 7,  type: "doacao",   amount: 850.00,  description: "Campanha de Carnaval — vaquinha online",       category: "Campanha Online",        date: "2026-02-05" },
-  { id: 8,  type: "doacao",   amount: 380.00,  description: "Doação Srª Maria Aparecida",                   category: "Pessoa Física",          date: "2026-02-10" },
-  { id: 9,  type: "despesa",  amount: 960.00,  description: "Reposição de estoque — alimentos e bebidas",   category: "Compra de Estoque",       date: "2026-02-12" },
-  { id: 10, type: "despesa",  amount: 118.00,  description: "Conta de luz sede fev/26",                     category: "Administrativo",         date: "2026-02-15" },
-  { id: 11, type: "receita",  amount: 600.00,  description: "Mensalidades voluntários fev/26",              category: "Mensalidades",           date: "2026-02-28" },
-  { id: 12, type: "despesa",  amount: 245.00,  description: "Material de escritório e limpeza sede",        category: "Serviços Gerais",        date: "2026-02-28" },
+  { id: 7,  type: "doacao",   amount: 140.00,  description: "Campanha de Carnaval — vaquinha online",       category: "Campanha Online",        date: "2026-02-05" },
+  { id: 8,  type: "doacao",   amount: 60.00,   description: "Doação Srª Maria Aparecida",                   category: "Pessoa Física",          date: "2026-02-10" },
+  { id: 9,  type: "despesa",  amount: 175.00,  description: "Reposição de estoque — alimentos e bebidas",   category: "Compra de Estoque",       date: "2026-02-12" },
+  { id: 10, type: "despesa",  amount: 78.00,   description: "Conta de luz sede fev/26",                     category: "Administrativo",         date: "2026-02-15" },
+  { id: 11, type: "receita",  amount: 120.00,  description: "Mensalidades voluntários fev/26",              category: "Mensalidades",           date: "2026-02-28" },
+  { id: 12, type: "despesa",  amount: 48.00,   description: "Material de escritório e limpeza sede",        category: "Serviços Gerais",        date: "2026-02-28" },
   // Março 2026
-  { id: 13, type: "receita",  amount: 3200.00, description: "Bazar Solidário — 1ª Edição",                  category: "Evento de Arrecadação",  date: "2026-03-07" },
-  { id: 14, type: "doacao",   amount: 2000.00, description: "Doação Supermercado Família",                  category: "Empresa",                date: "2026-03-10" },
-  { id: 15, type: "despesa",  amount: 1480.00, description: "Compra alimentos — feira atacado março",       category: "Compra de Estoque",       date: "2026-03-11" },
-  { id: 16, type: "despesa",  amount: 650.00,  description: "Compra medicamentos essenciais",               category: "Compra de Estoque",       date: "2026-03-13" },
-  { id: 17, type: "despesa",  amount: 210.00,  description: "Transporte distribuição bairros",              category: "Logística e Transporte",  date: "2026-03-18" },
-  { id: 18, type: "receita",  amount: 600.00,  description: "Mensalidades voluntários mar/26",              category: "Mensalidades",           date: "2026-03-31" },
+  { id: 13, type: "receita",  amount: 510.00,  description: "Bazar Solidário — 1ª Edição",                  category: "Evento de Arrecadação",  date: "2026-03-07" },
+  { id: 14, type: "doacao",   amount: 300.00,  description: "Doação Supermercado Família",                  category: "Empresa",                date: "2026-03-10" },
+  { id: 15, type: "despesa",  amount: 260.00,  description: "Compra alimentos — feira atacado março",       category: "Compra de Estoque",       date: "2026-03-11" },
+  { id: 16, type: "despesa",  amount: 115.00,  description: "Compra medicamentos essenciais",               category: "Compra de Estoque",       date: "2026-03-13" },
+  { id: 17, type: "despesa",  amount: 40.00,   description: "Transporte distribuição bairros",              category: "Logística e Transporte",  date: "2026-03-18" },
+  { id: 18, type: "receita",  amount: 120.00,  description: "Mensalidades voluntários mar/26",              category: "Mensalidades",           date: "2026-03-31" },
   // Abril 2026
-  { id: 19, type: "doacao",   amount: 450.00,  description: "Doação Sr. Carlos Mendes",                     category: "Pessoa Física",          date: "2026-04-03" },
-  { id: 20, type: "doacao",   amount: 1200.00, description: "Campanha Páscoa Solidária — Instagram",        category: "Campanha Online",        date: "2026-04-14" },
-  { id: 21, type: "despesa",  amount: 1320.00, description: "Compra de estoque — alimentos e higiene",      category: "Compra de Estoque",       date: "2026-04-15" },
-  { id: 22, type: "despesa",  amount: 148.00,  description: "Conta de luz e água sede abr/26",              category: "Administrativo",         date: "2026-04-17" },
-  { id: 23, type: "despesa",  amount: 270.00,  description: "Manutenção veículo de entregas",               category: "Logística e Transporte",  date: "2026-04-22" },
-  { id: 24, type: "receita",  amount: 600.00,  description: "Mensalidades voluntários abr/26",              category: "Mensalidades",           date: "2026-04-30" },
-  { id: 25, type: "receita",  amount: 1800.00, description: "Parceria Prefeitura Municipal — abr/26",       category: "Parceria Institucional", date: "2026-04-30" },
+  { id: 19, type: "doacao",   amount: 75.00,   description: "Doação Sr. Carlos Mendes",                     category: "Pessoa Física",          date: "2026-04-03" },
+  { id: 20, type: "doacao",   amount: 190.00,  description: "Campanha Páscoa Solidária — Instagram",        category: "Campanha Online",        date: "2026-04-14" },
+  { id: 21, type: "despesa",  amount: 240.00,  description: "Compra de estoque — alimentos e higiene",      category: "Compra de Estoque",       date: "2026-04-15" },
+  { id: 22, type: "despesa",  amount: 92.00,   description: "Conta de luz e água sede abr/26",              category: "Administrativo",         date: "2026-04-17" },
+  { id: 23, type: "despesa",  amount: 55.00,   description: "Manutenção veículo de entregas",               category: "Logística e Transporte",  date: "2026-04-22" },
+  { id: 24, type: "receita",  amount: 120.00,  description: "Mensalidades voluntários abr/26",              category: "Mensalidades",           date: "2026-04-30" },
+  { id: 25, type: "receita",  amount: 280.00,  description: "Parceria Prefeitura Municipal — abr/26",       category: "Parceria Institucional", date: "2026-04-30" },
   // Maio 2026
-  { id: 26, type: "receita",  amount: 4000.00, description: "Projeto Social Municipal — repasse mai/26",    category: "Projeto Social",         date: "2026-05-02" },
-  { id: 27, type: "doacao",   amount: 1350.00, description: "Doação Empresa TechCare LTDA",                 category: "Empresa",                date: "2026-05-08" },
-  { id: 28, type: "despesa",  amount: 1760.00, description: "Grande compra alimentos — Atacadão mai/26",    category: "Compra de Estoque",       date: "2026-05-09" },
-  { id: 29, type: "despesa",  amount: 495.00,  description: "Reposição itens de higiene",                   category: "Compra de Estoque",       date: "2026-05-12" },
-  { id: 30, type: "doacao",   amount: 300.00,  description: "Doação Srª Fernanda Lima",                     category: "Pessoa Física",          date: "2026-05-15" },
-  { id: 31, type: "despesa",  amount: 185.00,  description: "Combustível entregas semana 3",                category: "Logística e Transporte",  date: "2026-05-20" },
-  { id: 32, type: "receita",  amount: 600.00,  description: "Mensalidades voluntários mai/26",              category: "Mensalidades",           date: "2026-05-26" },
+  { id: 26, type: "receita",  amount: 620.00,  description: "Projeto Social Municipal — repasse mai/26",    category: "Projeto Social",         date: "2026-05-02" },
+  { id: 27, type: "doacao",   amount: 210.00,  description: "Doação Empresa TechCare LTDA",                 category: "Empresa",                date: "2026-05-08" },
+  { id: 28, type: "despesa",  amount: 310.00,  description: "Grande compra alimentos — Atacadão mai/26",    category: "Compra de Estoque",       date: "2026-05-09" },
+  { id: 29, type: "despesa",  amount: 88.00,   description: "Reposição itens de higiene",                   category: "Compra de Estoque",       date: "2026-05-12" },
+  { id: 30, type: "doacao",   amount: 50.00,   description: "Doação Srª Fernanda Lima",                     category: "Pessoa Física",          date: "2026-05-15" },
+  { id: 31, type: "despesa",  amount: 35.00,   description: "Combustível entregas semana 3",                category: "Logística e Transporte",  date: "2026-05-20" },
+  { id: 32, type: "receita",  amount: 120.00,  description: "Mensalidades voluntários mai/26",              category: "Mensalidades",           date: "2026-05-26" },
 ];
 
 // ─── Products ─────────────────────────────────────────────────────────────────
 
 function readRaw(): StoredProduct[] {
   const raw = localStorage.getItem(KEYS.products);
-  if (raw) return JSON.parse(raw) as StoredProduct[];
+  if (raw) {
+    // Garante minStock em produtos salvos antes da introdução do estoque mínimo
+    return (JSON.parse(raw) as StoredProduct[]).map((p) => ({ ...p, minStock: p.minStock ?? 0 }));
+  }
   localStorage.setItem(KEYS.products, JSON.stringify(PRODUCT_SEED));
   localStorage.setItem(KEYS.nextId, String(PRODUCT_SEED.length + 1));
   return PRODUCT_SEED;
@@ -330,12 +346,12 @@ export function deleteTransaction(id: number): void {
 
 // Algumas movimentações históricas de exemplo (registros — não recalculam o estoque do seed)
 const MOVEMENT_SEED: Omit<StockMovement, "user">[] = [
-  { id: 1, productId: 1,  productName: "Leite Integral 1L",        type: "entrada", quantity: 24, reason: "Compra",            date: "2026-05-09" },
-  { id: 2, productId: 2,  productName: "Feijão Carioca 1kg",       type: "entrada", quantity: 40, reason: "Doação recebida",    date: "2026-05-10" },
-  { id: 3, productId: 1,  productName: "Leite Integral 1L",        type: "saida",   quantity: 12, reason: "Distribuição",       date: "2026-05-18" },
-  { id: 4, productId: 25, productName: "Camiseta Infantil 4-6 anos", type: "saida", quantity: 10, reason: "Doação entregue",    date: "2026-05-20" },
-  { id: 5, productId: 21, productName: "Dipirona 500mg cx 10cp",   type: "saida",   quantity: 5,  reason: "Distribuição",       date: "2026-05-22" },
-  { id: 6, productId: 4,  productName: "Macarrão Espaguete 500g",  type: "entrada", quantity: 30, reason: "Compra",            date: "2026-05-25" },
+  { id: 1, productId: 1,  productName: "Leite Integral 1L",        type: "entrada", quantity: 24, reason: "Compra",            party: "Atacadão Central",            date: "2026-05-09" },
+  { id: 2, productId: 2,  productName: "Feijão Carioca 1kg",       type: "entrada", quantity: 40, reason: "Doação recebida",    party: "Supermercado Família",        date: "2026-05-10" },
+  { id: 3, productId: 1,  productName: "Leite Integral 1L",        type: "saida",   quantity: 12, reason: "Distribuição",       party: "Família Souza — Bairro Esperança", date: "2026-05-18" },
+  { id: 4, productId: 25, productName: "Camiseta Infantil 4-6 anos", type: "saida", quantity: 10, reason: "Doação entregue",    party: "Creche Pequeno Príncipe",     date: "2026-05-20" },
+  { id: 5, productId: 21, productName: "Dipirona 500mg cx 10cp",   type: "saida",   quantity: 5,  reason: "Distribuição",       party: "Posto de Saúde do bairro",    date: "2026-05-22" },
+  { id: 6, productId: 4,  productName: "Macarrão Espaguete 500g",  type: "entrada", quantity: 30, reason: "Compra",            party: "Atacadão Central",            date: "2026-05-25" },
 ];
 
 function readMovementsRaw(): StockMovement[] {
@@ -415,6 +431,18 @@ const DEFAULT_ADMIN: User = {
   createdAt: "2026-01-01T00:00:00.000Z",
 };
 
+const USER_SEED: User[] = [
+  { email: "ana.voluntaria@ama.org",   password: "senha123", role: "voluntario", createdAt: "2026-01-15T09:00:00.000Z" },
+  { email: "carlos.coord@ama.org",     password: "senha123", role: "voluntario", createdAt: "2026-02-03T10:30:00.000Z" },
+  { email: "fernanda.gestora@ama.org", password: "senha123", role: "admin",      createdAt: "2026-02-20T08:00:00.000Z" },
+  { email: "joao.voluntario@ama.org",  password: "senha123", role: "voluntario", createdAt: "2026-03-10T14:00:00.000Z" },
+  { email: "lucia.admin@ama.org",      password: "senha123", role: "admin",      createdAt: "2026-04-01T11:00:00.000Z" },
+  { email: "pedro.vol@ama.org",        password: "senha123", role: "voluntario", createdAt: "2026-04-18T09:15:00.000Z" },
+  { email: "marcia.vol@ama.org",       password: "senha123", role: "voluntario", createdAt: "2026-05-05T16:00:00.000Z" },
+];
+
+const ALL_SEED_USERS = [DEFAULT_ADMIN, ...USER_SEED];
+
 // Normaliza usuários antigos que não tinham papel/data de criação
 function normalizeUser(u: Partial<User> & { email: string; password: string }): User {
   return {
@@ -427,10 +455,12 @@ function normalizeUser(u: Partial<User> & { email: string; password: string }): 
 
 function readUsers(): User[] {
   const stored = (JSON.parse(localStorage.getItem(KEYS.users) ?? "[]") as User[]).map(normalizeUser);
-  if (!stored.some((u) => u.email === DEFAULT_ADMIN.email)) {
-    const withAdmin = [DEFAULT_ADMIN, ...stored];
-    localStorage.setItem(KEYS.users, JSON.stringify(withAdmin));
-    return withAdmin;
+  const storedEmails = new Set(stored.map((u) => u.email));
+  const missing = ALL_SEED_USERS.filter((u) => !storedEmails.has(u.email));
+  if (missing.length > 0) {
+    const merged = [...missing, ...stored];
+    localStorage.setItem(KEYS.users, JSON.stringify(merged));
+    return merged;
   }
   return stored;
 }

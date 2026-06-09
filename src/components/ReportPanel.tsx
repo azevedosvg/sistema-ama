@@ -69,13 +69,14 @@ export default function ReportPanel() {
     const totalDoacoes = transactions.filter((t) => t.type === "doacao").reduce((s, t) => s + t.amount, 0);
 
     // ── Movimentações ──
-    const movHeaders = ["Data", "Tipo", "Produto", "Quantidade", "Motivo", "Responsável"];
+    const movHeaders = ["Data", "Tipo", "Produto", "Quantidade", "Motivo", "Doador/Beneficiário", "Responsável"];
     const movRows = movements.map((m) => [
       formatDateBR(m.date),
       m.type === "entrada" ? "Entrada" : "Saída",
       m.productName,
       (m.type === "entrada" ? "+" : "−") + m.quantity,
       m.reason,
+      m.party ?? "—",
       m.user,
     ]);
 
@@ -145,7 +146,7 @@ export default function ReportPanel() {
         <div className="h-7 w-1 flex-shrink-0 rounded-full bg-amber-400" />
         <div>
           <h2 className="text-lg font-bold text-gray-900">Relatórios e Exportação</h2>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-gray-500">
             Baixe os dados em CSV (Excel) ou gere um PDF pela impressão do navegador
           </p>
         </div>

@@ -5,13 +5,15 @@ import type { Product } from "../types/product";
 
 type SortOption = "" | "name" | "quantity" | "expirationDate" | "riskValue";
 
+type StatusFilter = "" | Product["status"] | "low";
+
 type Props = {
   searchQuery: string;
-  statusFilter: "" | Product["status"];
+  statusFilter: StatusFilter;
   categoryFilter: string;
   sortOption: SortOption;
   onSearchChange: (value: string) => void;
-  onStatusChange: (value: "" | Product["status"]) => void;
+  onStatusChange: (value: StatusFilter) => void;
   onCategoryChange: (value: string) => void;
   onSortChange: (value: SortOption) => void;
   onClearFilters: () => void;
@@ -69,7 +71,7 @@ export default function ProductFilters({
 
       <select
         value={statusFilter}
-        onChange={(e) => onStatusChange(e.target.value as "" | Product["status"])}
+        onChange={(e) => onStatusChange(e.target.value as StatusFilter)}
         className={selectClass}
       >
         <option value="">Todos os status</option>
@@ -77,6 +79,7 @@ export default function ProductFilters({
         <option value="critical">Crítico</option>
         <option value="attention">Atenção</option>
         <option value="safe">Seguro</option>
+        <option value="low">Estoque baixo</option>
       </select>
 
       <select

@@ -9,6 +9,7 @@ type MovForm = {
   type: MovementType;
   quantity: string;
   reason: string;
+  party: string;
   date: string;
 };
 
@@ -17,6 +18,7 @@ const EMPTY_FORM: MovForm = {
   type: "entrada",
   quantity: "",
   reason: "",
+  party: "",
   date: new Date().toISOString().slice(0, 10),
 };
 
@@ -65,6 +67,7 @@ export function useMovements() {
       type: form.type,
       quantity: Number(form.quantity),
       reason: form.reason,
+      party: form.party.trim() || undefined,
       date: form.date,
     });
     refresh();
