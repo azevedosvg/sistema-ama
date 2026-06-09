@@ -114,7 +114,7 @@ export default function Home() {
     <div className="flex min-h-screen flex-col bg-slate-200">
       {/* Header */}
       <header className="sticky top-0 z-30 bg-blue-700 shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+        <div className="w-full px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
           <Link
             to="/"
             onClick={() => setActiveTab("visao")}
