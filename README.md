@@ -8,11 +8,18 @@ Sistema de controle de estoque e financeiro desenvolvido para a ONG **Amigos Mã
 
 A aplicação oferece:
 
+- **Visão geral consolidada**: dashboard inicial que cruza estoque, finanças e atividades numa só tela
 - **Gestão de produtos**: cadastro, edição, exclusão e busca com filtros avançados
+- **Movimentação de estoque**: entradas e saídas que ajustam a quantidade do produto automaticamente
 - **Controle financeiro**: caixa, receitas, despesas e doações com gráficos visuais
+- **Relatórios e exportação**: estoque, financeiro e movimentações em CSV (Excel) ou PDF (impressão)
+- **Gestão de usuários e papéis**: administradores e voluntários, com aba restrita a administradores
 - **Autenticação**: login e cadastro de usuários com persistência local (com botão de mostrar/ocultar senha)
 - **Histórico de alterações**: auditoria de quem entrou, quem saiu e o que foi cadastrado, editado ou removido
 - **Indicadores de status**: vencimento de produtos com alertas por prazo (vencido, crítico, atenção, seguro)
+- **UX**: notificações (toasts), modais de confirmação e estados de vazio reutilizáveis
+
+> **Divisão de trabalho:** veja [`TAREFAS.md`](./TAREFAS.md) para a organização das 8 frentes da equipe.
 
 ---
 
@@ -285,8 +292,9 @@ Em edições de produto, `diffProduct()` compara o estado anterior com o novo e 
 | Chave | Conteúdo |
 |---|---|
 | `ama_products` | Array de `Product[]` |
-| `ama_users` | Array de `{ email, password }[]` |
+| `ama_users` | Array de `{ email, password, role, createdAt }[]` |
 | `ama_transactions` | Array de `Transaction[]` |
+| `ama_movements` | Array de `StockMovement[]` (entradas e saídas de estoque) |
 | `ama_activities` | Array de `Activity[]` (histórico de alterações, máx. 500) |
 | `ama_next_activity_id` | Contador incremental de IDs do histórico |
 | `ama_seed_version` | String com a versão atual do seed (ex: `"v3"`) |

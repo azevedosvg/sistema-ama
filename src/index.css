@@ -20,3 +20,14 @@
     display: none;
   }
 }
+
+@layer utilities {
+  /* Rolagem por toque sem barra visível — usada na navegação do header no mobile */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}

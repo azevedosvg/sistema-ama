@@ -1,8 +1,12 @@
 import { createContext, useContext, useState } from "react";
-import { logLogin, logLogout } from "../lib/storage";
+import { getUserRole, logLogin, logLogout } from "../lib/storage";
+import type { UserRole } from "../types/user";
 
 type AuthContextType = {
   token: string | null;
+  email: string | null;
+  role: UserRole | null;
+  isAdmin: boolean;
   login: (token: string) => void;
   logout: () => void;
 };
@@ -13,6 +17,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(
     localStorage.getItem("token"),
   );
+
+  const role: UserRole | null = token ? getUserRole(token) : null;
 
   function login(newToken: string) {
     localStorage.setItem("token", newToken);
@@ -28,7 +34,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ token, login, logout }}>
+    <AuthContext.Provider
+      value={{ token, email: token, role, isAdmin: role === "admin", login, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );

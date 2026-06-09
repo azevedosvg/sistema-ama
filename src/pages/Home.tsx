@@ -1,20 +1,56 @@
 import { motion } from "framer-motion";
-import { History, LogOut, Package, PackagePlus, Pencil, Wallet } from "lucide-react";
+import {
+  ArrowLeftRight,
+  FileBarChart,
+  History,
+  LayoutDashboard,
+  LogOut,
+  Package,
+  PackagePlus,
+  Pencil,
+  Users,
+  Wallet,
+} from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import ActivityLog from "../components/ActivityLog";
 import BudgetPanel from "../components/BudgetPanel";
 import Dashboard from "../components/Dashboard";
 import Footer from "../components/Footer";
+import LogoMark from "../components/LogoMark";
+import Overview from "../components/Overview";
 import ProductFilters from "../components/ProductFilters";
 import ProductForm from "../components/ProductForm";
 import ProductList from "../components/ProductList";
+import ReportPanel from "../components/ReportPanel";
 import ScrollToTopButton from "../components/ScrollToTopButton";
+import StockMovement from "../components/StockMovement";
+import UserManagement from "../components/UserManagement";
 import { useAuth } from "../contexts/AuthContext";
 import { useFinance } from "../hooks/useFinance";
 import { useProducts } from "../hooks/useProducts";
+import { ROLE_LABELS } from "../types/user";
 
-type Tab = "estoque" | "financeiro" | "historico";
+export type HomeTab =
+  | "visao"
+  | "estoque"
+  | "movimentacao"
+  | "financeiro"
+  | "relatorios"
+  | "historico"
+  | "usuarios";
+
+type TabDef = { id: HomeTab; label: string; icon: React.ElementType; adminOnly?: boolean };
+
+const TABS: TabDef[] = [
+  { id: "visao", label: "Visão Geral", icon: LayoutDashboard },
+  { id: "estoque", label: "Estoque", icon: Package },
+  { id: "movimentacao", label: "Movimentação", icon: ArrowLeftRight },
+  { id: "financeiro", label: "Financeiro", icon: Wallet },
+  { id: "relatorios", label: "Relatórios", icon: FileBarChart },
+  { id: "historico", label: "Histórico", icon: History },
+  { id: "usuarios", label: "Usuários", icon: Users, adminOnly: true },
+];
 
 function SectionTitle({ title, sub }: { title: string; sub: string }) {
   return (
@@ -29,9 +65,9 @@ function SectionTitle({ title, sub }: { title: string; sub: string }) {
 }
 
 export default function Home() {
-  const { logout } = useAuth();
+  const { logout, role, isAdmin } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<Tab>("estoque");
+  const [activeTab, setActiveTab] = useState<HomeTab>("visao");
   const finance = useFinance();
   const {
     dashboardData,
@@ -59,6 +95,8 @@ export default function Home() {
     handleDeleteProduct,
   } = useProducts();
 
+  const visibleTabs = TABS.filter((t) => !t.adminOnly || isAdmin);
+
   function handleLogout() {
     logout();
     navigate("/login");
@@ -71,38 +109,33 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
           <Link
             to="/"
-            onClick={() => setActiveTab("estoque")}
+            onClick={() => setActiveTab("visao")}
             aria-label="Ir para a página inicial"
             className="flex items-center gap-3 flex-shrink-0 rounded-xl px-1 py-1 -mx-1 transition-opacity hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
           >
-            <span className="text-2xl select-none">🤲</span>
+            <LogoMark size={34} className="flex-shrink-0 drop-shadow-sm" />
             <div>
               <div className="flex items-baseline gap-2">
                 <span className="font-extrabold text-white text-lg leading-none tracking-tight">AMA</span>
-                <span className="hidden lg:inline text-blue-200 text-sm font-normal">
-                  Amigos Mãos Abertas
-                </span>
               </div>
               <div className="w-7 h-0.5 bg-amber-400 rounded-full mt-1" />
             </div>
           </Link>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             {/* Navigation */}
-            <nav className="flex items-center gap-1 p-1 bg-blue-800/50 rounded-xl">
-              {(
-                [
-                  { id: "estoque",    label: "Estoque",    icon: Package },
-                  { id: "financeiro", label: "Financeiro", icon: Wallet  },
-                  { id: "historico",  label: "Histórico",  icon: History },
-                ] as { id: Tab; label: string; icon: React.ElementType }[]
-              ).map(({ id, label, icon: Icon }) => (
+            <nav
+              aria-label="Navegação principal"
+              className="flex min-w-0 items-center gap-0.5 p-1 bg-blue-800/50 rounded-xl overflow-x-auto no-scrollbar"
+            >
+              {visibleTabs.map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
                   type="button"
                   onClick={() => setActiveTab(id)}
                   title={label}
-                  className={`relative flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                  aria-current={activeTab === id ? "page" : undefined}
+                  className={`relative flex items-center gap-2 px-2.5 xl:px-3.5 py-2 rounded-lg text-sm font-semibold transition-colors flex-shrink-0 ${
                     activeTab === id ? "text-blue-900" : "text-blue-100 hover:text-white"
                   }`}
                 >
@@ -114,19 +147,25 @@ export default function Home() {
                     />
                   )}
                   <Icon size={16} className="relative flex-shrink-0" />
-                  <span className="relative hidden md:inline">{label}</span>
+                  <span className="relative hidden xl:inline">{label}</span>
                 </button>
               ))}
             </nav>
 
             {/* Divider */}
-            <div className="w-px h-7 bg-blue-500/60" />
+            <div className="hidden xl:block w-px h-7 bg-blue-500/60 flex-shrink-0" />
+
+            {role && (
+              <span className="hidden xl:inline flex-shrink-0 rounded-full bg-blue-800/60 px-3 py-1 text-xs font-semibold text-amber-300">
+                {ROLE_LABELS[role]}
+              </span>
+            )}
 
             <motion.button
               onClick={handleLogout}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
-              className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-medium text-blue-100 hover:text-white hover:bg-blue-600 transition-colors"
+              className="flex flex-shrink-0 items-center gap-2 px-3 sm:px-4 py-2 rounded-xl text-sm font-medium text-blue-100 hover:text-white hover:bg-blue-600 transition-colors"
             >
               <LogOut size={16} />
               <span className="hidden sm:inline">Sair</span>
@@ -136,6 +175,16 @@ export default function Home() {
       </header>
 
       <main className="w-full flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {activeTab === "visao" && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <Overview onNavigate={setActiveTab} />
+          </motion.div>
+        )}
+
         {activeTab === "estoque" && (
           <>
             {/* Dashboard */}
@@ -230,6 +279,16 @@ export default function Home() {
           </>
         )}
 
+        {activeTab === "movimentacao" && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <StockMovement />
+          </motion.div>
+        )}
+
         {activeTab === "financeiro" && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -250,6 +309,16 @@ export default function Home() {
           </motion.div>
         )}
 
+        {activeTab === "relatorios" && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <ReportPanel />
+          </motion.div>
+        )}
+
         {activeTab === "historico" && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -257,6 +326,16 @@ export default function Home() {
             transition={{ duration: 0.4 }}
           >
             <ActivityLog />
+          </motion.div>
+        )}
+
+        {activeTab === "usuarios" && isAdmin && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <UserManagement />
           </motion.div>
         )}
       </main>

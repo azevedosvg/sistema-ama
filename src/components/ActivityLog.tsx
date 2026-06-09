@@ -231,7 +231,7 @@ export default function ActivityLog() {
             <AnimatePresence initial={false}>
               {groups.map((g) => (
                 <div key={g.day} className="mt-4 first:mt-2">
-                  <div className="sticky top-16 z-10 flex items-center gap-2 mb-1 py-1 bg-white">
+                  <div className="flex items-center gap-2 mb-1 py-1">
                     <span className="text-xs font-bold uppercase tracking-wide text-blue-700">{g.day}</span>
                     <span className="flex-1 h-px bg-gray-100" />
                   </div>

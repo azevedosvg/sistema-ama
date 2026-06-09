@@ -2,77 +2,9 @@ import { motion } from "framer-motion";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import Logo from "../components/Logo";
 import { useAuth } from "../contexts/AuthContext";
 import { loginUser } from "../lib/storage";
-
-function SolidarityIllustration() {
-  return (
-    <svg viewBox="0 0 340 260" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-sm">
-      {/* Soft glow halos */}
-      <circle cx="170" cy="145" r="115" fill="white" fillOpacity="0.04" />
-      <circle cx="170" cy="145" r="78" fill="white" fillOpacity="0.05" />
-
-      {/* Ground shadow */}
-      <ellipse cx="170" cy="208" rx="100" ry="8" fill="white" fillOpacity="0.1" />
-
-      {/* ── Left person ── */}
-      <ellipse cx="98" cy="157" rx="15" ry="27" fill="white" fillOpacity="0.82" />
-      <circle  cx="98" cy="117" r="18"          fill="white" fillOpacity="0.90" />
-      {/* left arm out */}
-      <line x1="84"  y1="144" x2="55"  y2="158" stroke="white" strokeWidth="9" strokeLinecap="round" strokeOpacity="0.80" />
-      {/* right arm → center */}
-      <line x1="112" y1="144" x2="143" y2="139" stroke="white" strokeWidth="9" strokeLinecap="round" strokeOpacity="0.80" />
-
-      {/* ── Center person (tallest) ── */}
-      <ellipse cx="170" cy="147" rx="17" ry="30" fill="white" />
-      <circle  cx="170" cy="104" r="21"          fill="white" />
-      {/* left arm */}
-      <line x1="153" y1="136" x2="127" y2="139" stroke="white" strokeWidth="9" strokeLinecap="round" />
-      {/* right arm */}
-      <line x1="187" y1="136" x2="213" y2="139" stroke="white" strokeWidth="9" strokeLinecap="round" />
-
-      {/* ── Right person ── */}
-      <ellipse cx="242" cy="157" rx="15" ry="27" fill="white" fillOpacity="0.82" />
-      <circle  cx="242" cy="117" r="18"          fill="white" fillOpacity="0.90" />
-      {/* left arm ← center */}
-      <line x1="228" y1="144" x2="197" y2="139" stroke="white" strokeWidth="9" strokeLinecap="round" strokeOpacity="0.80" />
-      {/* right arm out */}
-      <line x1="256" y1="144" x2="285" y2="158" stroke="white" strokeWidth="9" strokeLinecap="round" strokeOpacity="0.80" />
-
-      {/* Hand-clasp dots */}
-      <circle cx="135" cy="139" r="7.5" fill="white" fillOpacity="0.65" />
-      <circle cx="205" cy="139" r="7.5" fill="white" fillOpacity="0.65" />
-
-      {/* ── Hearts ── */}
-      {/* Big heart — center */}
-      <path d="M170 95 C170 95 160 85 155 89 C150 93 155 102 170 112 C185 102 190 93 185 89 C180 85 170 95 170 95 Z" fill="#fbbf24" />
-      {/* Small heart — left */}
-      <path d="M98 100 C98 100 92 94 89 96.5 C86 99 89 104 98 110 C107 104 110 99 107 96.5 C104 94 98 100 98 100 Z" fill="#fbbf24" fillOpacity="0.75" />
-      {/* Small heart — right */}
-      <path d="M242 100 C242 100 236 94 233 96.5 C230 99 233 104 242 110 C251 104 254 99 251 96.5 C248 94 242 100 242 100 Z" fill="#fbbf24" fillOpacity="0.75" />
-
-      {/* Tiny heart floating */}
-      <path d="M170 72 C170 72 167 69 165.5 70 C164 71 165.5 73.5 170 76.5 C174.5 73.5 176 71 174.5 70 C173 69 170 72 170 72 Z" fill="#fbbf24" fillOpacity="0.55" />
-
-      {/* ── Star sparkles ── */}
-      <path d="M48 93 L50.2 85 L52.4 93 L60 95 L52.4 97 L50.2 105 L48 97 L40 95 Z"    fill="white" fillOpacity="0.30" />
-      <path d="M290 93 L292.2 85 L294.4 93 L302 95 L294.4 97 L292.2 105 L290 97 L282 95 Z" fill="white" fillOpacity="0.30" />
-
-      {/* Dot accents */}
-      <circle cx="50"  cy="132" r="3.5" fill="#fbbf24" fillOpacity="0.55" />
-      <circle cx="290" cy="132" r="3.5" fill="#fbbf24" fillOpacity="0.55" />
-      <circle cx="136" cy="74"  r="3"   fill="#fbbf24" fillOpacity="0.45" />
-      <circle cx="204" cy="74"  r="3"   fill="#fbbf24" fillOpacity="0.45" />
-      <circle cx="72"  cy="174" r="2.5" fill="white"   fillOpacity="0.25" />
-      <circle cx="268" cy="174" r="2.5" fill="white"   fillOpacity="0.25" />
-      <circle cx="28"  cy="155" r="2"   fill="white"   fillOpacity="0.20" />
-      <circle cx="312" cy="155" r="2"   fill="white"   fillOpacity="0.20" />
-
-      {/* Curved caption arc (decorative) */}
-      <path d="M80 220 Q170 232 260 220" stroke="white" strokeWidth="1.5" strokeOpacity="0.15" fill="none" strokeLinecap="round" />
-    </svg>
-  );
-}
 
 export default function Login() {
   const { login } = useAuth();
@@ -112,14 +44,14 @@ export default function Login() {
         <div className="absolute bottom-1/4 left-10 w-20 h-20 bg-amber-300 rounded-full opacity-10" />
 
         <div className="relative z-10 flex flex-col items-center text-center max-w-md">
-          {/* Illustration */}
+          {/* Logo oficial da ONG */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.7 }}
-            className="mb-6 w-full"
+            initial={{ opacity: 0, scale: 0.92, y: 16 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6, ease: "easeOut" }}
+            className="mb-7"
           >
-            <SolidarityIllustration />
+            <Logo size={260} badge className="rounded-[2rem] shadow-xl" />
           </motion.div>
 
           <motion.div
@@ -127,14 +59,12 @@ export default function Login() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
           >
-            <h1 className="text-5xl font-extrabold tracking-tight text-white mb-1">AMA</h1>
-            <p className="text-blue-200 text-lg font-medium mb-3">Amigos Mãos Abertas</p>
             <div className="flex items-center justify-center gap-2 mb-5">
               <div className="w-10 h-0.5 bg-amber-400 rounded-full" />
               <div className="w-3 h-3 bg-amber-400 rounded-full" />
               <div className="w-10 h-0.5 bg-amber-400 rounded-full" />
             </div>
-            <p className="text-blue-100 text-sm leading-relaxed max-w-xs">
+            <p className="text-blue-100 text-base leading-relaxed max-w-xs">
               Juntos fazemos a diferença. Controle de estoque para quem cuida de quem mais precisa.
             </p>
           </motion.div>
@@ -150,8 +80,8 @@ export default function Login() {
           className="w-full max-w-md"
         >
           {/* Mobile header */}
-          <div className="lg:hidden text-center mb-8">
-            <div className="text-4xl mb-2">🤲</div>
+          <div className="lg:hidden flex flex-col items-center text-center mb-8">
+            <Logo size={88} badge className="mb-3 rounded-2xl shadow-md" />
             <h1 className="text-2xl font-extrabold text-blue-700">AMA</h1>
             <p className="text-gray-400 text-sm">Amigos Mãos Abertas</p>
           </div>

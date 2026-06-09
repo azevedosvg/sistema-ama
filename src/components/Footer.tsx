@@ -1,4 +1,5 @@
 import { Heart, Package } from "lucide-react";
+import LogoMark from "./LogoMark";
 
 export default function Footer() {
   const year = new Date().getFullYear();
@@ -10,7 +11,7 @@ export default function Footer() {
         <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:justify-between">
           {/* Marca */}
           <div className="flex items-center gap-3">
-            <span className="text-2xl select-none">🤲</span>
+            <LogoMark size={40} className="flex-shrink-0" />
             <div>
               <div className="flex items-baseline gap-2">
                 <span className="font-extrabold text-white text-lg leading-none tracking-tight">

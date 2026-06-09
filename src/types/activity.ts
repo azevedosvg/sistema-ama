@@ -6,7 +6,12 @@ export type ActivityAction =
   | "update"
   | "delete";
 
-export type ActivityEntity = "produto" | "movimentação" | "sessão" | "usuário";
+export type ActivityEntity =
+  | "produto"
+  | "movimentação"
+  | "estoque"
+  | "sessão"
+  | "usuário";
 
 // Alteração campo a campo — usada em edições para mostrar "de → para"
 export type FieldChange = {

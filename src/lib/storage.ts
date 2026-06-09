@@ -1,10 +1,12 @@
 import type { Product } from "../types/product";
 import type { Transaction } from "../types/finance";
 import type { Activity, ActivityEntity, FieldChange } from "../types/activity";
+import type { StockMovement } from "../types/movement";
+import type { AppUser, UserRole } from "../types/user";
 import { enrich } from "./productUtils";
 
 type StoredProduct = Omit<Product, "status" | "daysToExpire" | "riskValue">;
-type User = { email: string; password: string };
+type User = { email: string; password: string; role: UserRole; createdAt: string };
 
 const SEED_VERSION = "v3";
 
@@ -13,6 +15,8 @@ const KEYS = {
   nextId: "ama_next_id",
   transactions: "ama_transactions",
   nextTxId: "ama_next_tx_id",
+  movements: "ama_movements",
+  nextMovementId: "ama_next_movement_id",
   users: "ama_users",
   seedVersion: "ama_seed_version",
   activities: "ama_activities",
@@ -322,12 +326,107 @@ export function deleteTransaction(id: number): void {
   if (target) logActivity({ action: "delete", entity: "movimentação", target: target.description });
 }
 
+// ─── Stock Movements (Movimentação de estoque) ──────────────────────────────────
+
+// Algumas movimentações históricas de exemplo (registros — não recalculam o estoque do seed)
+const MOVEMENT_SEED: Omit<StockMovement, "user">[] = [
+  { id: 1, productId: 1,  productName: "Leite Integral 1L",        type: "entrada", quantity: 24, reason: "Compra",            date: "2026-05-09" },
+  { id: 2, productId: 2,  productName: "Feijão Carioca 1kg",       type: "entrada", quantity: 40, reason: "Doação recebida",    date: "2026-05-10" },
+  { id: 3, productId: 1,  productName: "Leite Integral 1L",        type: "saida",   quantity: 12, reason: "Distribuição",       date: "2026-05-18" },
+  { id: 4, productId: 25, productName: "Camiseta Infantil 4-6 anos", type: "saida", quantity: 10, reason: "Doação entregue",    date: "2026-05-20" },
+  { id: 5, productId: 21, productName: "Dipirona 500mg cx 10cp",   type: "saida",   quantity: 5,  reason: "Distribuição",       date: "2026-05-22" },
+  { id: 6, productId: 4,  productName: "Macarrão Espaguete 500g",  type: "entrada", quantity: 30, reason: "Compra",            date: "2026-05-25" },
+];
+
+function readMovementsRaw(): StockMovement[] {
+  const raw = localStorage.getItem(KEYS.movements);
+  if (raw) return JSON.parse(raw) as StockMovement[];
+  const seeded = MOVEMENT_SEED.map((m) => ({ ...m, user: "admin@ama.org" }));
+  localStorage.setItem(KEYS.movements, JSON.stringify(seeded));
+  localStorage.setItem(KEYS.nextMovementId, String(seeded.length + 1));
+  return seeded;
+}
+
+function writeMovementsRaw(movements: StockMovement[]): void {
+  localStorage.setItem(KEYS.movements, JSON.stringify(movements));
+}
+
+function nextMovementId(): number {
+  const id = parseInt(localStorage.getItem(KEYS.nextMovementId) ?? "1");
+  localStorage.setItem(KEYS.nextMovementId, String(id + 1));
+  return id;
+}
+
+export function getMovements(): StockMovement[] {
+  return readMovementsRaw().sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
+}
+
+// Ajusta a quantidade do produto: +qty para entrada, -qty (sem ficar negativo) para saída
+function adjustProductStock(productId: number, delta: number): void {
+  const raw = readRaw();
+  writeRaw(
+    raw.map((p) =>
+      p.id === productId ? { ...p, quantity: Math.max(0, p.quantity + delta) } : p,
+    ),
+  );
+}
+
+export function createMovement(
+  data: Omit<StockMovement, "id" | "user" | "productName">,
+): StockMovement {
+  const product = readRaw().find((p) => p.id === data.productId);
+  const movement: StockMovement = {
+    id: nextMovementId(),
+    productName: product?.name ?? "Produto removido",
+    user: getCurrentUser(),
+    ...data,
+  };
+  writeMovementsRaw([movement, ...readMovementsRaw()]);
+  adjustProductStock(data.productId, data.type === "entrada" ? data.quantity : -data.quantity);
+  logActivity({
+    action: "create",
+    entity: "estoque",
+    target: `${data.type === "entrada" ? "Entrada" : "Saída"} · ${movement.productName} (${data.quantity})`,
+  });
+  return movement;
+}
+
+export function deleteMovement(id: number): void {
+  const movements = readMovementsRaw();
+  const target = movements.find((m) => m.id === id);
+  writeMovementsRaw(movements.filter((m) => m.id !== id));
+  if (target) {
+    // Reverte o efeito da movimentação no estoque
+    adjustProductStock(target.productId, target.type === "entrada" ? -target.quantity : target.quantity);
+    logActivity({
+      action: "delete",
+      entity: "estoque",
+      target: `${target.type === "entrada" ? "Entrada" : "Saída"} · ${target.productName} (${target.quantity})`,
+    });
+  }
+}
+
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
-const DEFAULT_ADMIN: User = { email: "admin@ama.org", password: "admin123" };
+const DEFAULT_ADMIN: User = {
+  email: "admin@ama.org",
+  password: "admin123",
+  role: "admin",
+  createdAt: "2026-01-01T00:00:00.000Z",
+};
+
+// Normaliza usuários antigos que não tinham papel/data de criação
+function normalizeUser(u: Partial<User> & { email: string; password: string }): User {
+  return {
+    email: u.email,
+    password: u.password,
+    role: u.role ?? (u.email === DEFAULT_ADMIN.email ? "admin" : "voluntario"),
+    createdAt: u.createdAt ?? new Date().toISOString(),
+  };
+}
 
 function readUsers(): User[] {
-  const stored = JSON.parse(localStorage.getItem(KEYS.users) ?? "[]") as User[];
+  const stored = (JSON.parse(localStorage.getItem(KEYS.users) ?? "[]") as User[]).map(normalizeUser);
   if (!stored.some((u) => u.email === DEFAULT_ADMIN.email)) {
     const withAdmin = [DEFAULT_ADMIN, ...stored];
     localStorage.setItem(KEYS.users, JSON.stringify(withAdmin));
@@ -336,14 +435,52 @@ function readUsers(): User[] {
   return stored;
 }
 
+function writeUsers(users: User[]): void {
+  localStorage.setItem(KEYS.users, JSON.stringify(users));
+}
+
 export function registerUser(email: string, password: string): "ok" | "exists" {
   const users = readUsers();
   if (users.some((u) => u.email === email)) return "exists";
-  localStorage.setItem(KEYS.users, JSON.stringify([...users, { email, password }]));
+  const user: User = { email, password, role: "voluntario", createdAt: new Date().toISOString() };
+  writeUsers([...users, user]);
   logActivity({ action: "register", entity: "usuário", target: email, user: email });
   return "ok";
 }
 
 export function loginUser(email: string, password: string): boolean {
   return readUsers().some((u) => u.email === email && u.password === password);
+}
+
+// Lista de usuários para a interface (sem expor a senha)
+export function getUsers(): AppUser[] {
+  return readUsers()
+    .map(({ email, role, createdAt }) => ({ email, role, createdAt }))
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+}
+
+export function getUserRole(email: string): UserRole {
+  return readUsers().find((u) => u.email === email)?.role ?? "voluntario";
+}
+
+export function updateUserRole(email: string, role: UserRole): void {
+  if (email === DEFAULT_ADMIN.email) return; // o admin padrão não pode ser rebaixado
+  const users = readUsers();
+  const prev = users.find((u) => u.email === email);
+  if (!prev || prev.role === role) return;
+  writeUsers(users.map((u) => (u.email === email ? { ...u, role } : u)));
+  logActivity({
+    action: "update",
+    entity: "usuário",
+    target: email,
+    changes: [{ field: "role", label: "Papel", from: prev.role, to: role }],
+  });
+}
+
+export function deleteUser(email: string): void {
+  if (email === DEFAULT_ADMIN.email) return; // o admin padrão é permanente
+  const users = readUsers();
+  if (!users.some((u) => u.email === email)) return;
+  writeUsers(users.filter((u) => u.email !== email));
+  logActivity({ action: "delete", entity: "usuário", target: email });
 }
