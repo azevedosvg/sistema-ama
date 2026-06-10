@@ -1,4 +1,4 @@
-# AMA — Sistema de Gestão de Estoque
+# sistema-ama — Sistema de Gestão de Estoque AMA
 
 Sistema de controle de estoque e financeiro desenvolvido para a ONG **Amigos Mãos Abertas (AMA)**, uma organização solidária que distribui alimentos, roupas, medicamentos e outros itens para comunidades carentes.
 
@@ -18,8 +18,6 @@ A aplicação oferece:
 - **Histórico de alterações**: auditoria de quem entrou, quem saiu e o que foi cadastrado, editado ou removido
 - **Indicadores de status**: vencimento de produtos com alertas por prazo (vencido, crítico, atenção, seguro)
 - **UX**: notificações (toasts), modais de confirmação e estados de vazio reutilizáveis
-
-> **Divisão de trabalho:** veja [`TAREFAS.md`](./TAREFAS.md) para a organização das 8 frentes da equipe.
 
 ---
 
@@ -49,7 +47,7 @@ A aplicação oferece:
 ### Instalação
 
 ```bash
-cd sistema-estoque
+cd sistema-ama
 npm install
 npm run dev
 ```
@@ -81,7 +79,7 @@ A aplicação injeta automaticamente um usuário administrador no primeiro acess
 ## Estrutura de Pastas
 
 ```
-sistema-estoque/
+sistema-ama/
 ├── src/
 │   ├── components/         # Componentes reutilizáveis
 │   │   ├── ActivityLog.tsx     # Histórico de alterações (linha do tempo + filtros)

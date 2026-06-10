@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Guia de Apresentação · Integrante 7 — Gestão de Usuários &amp; Papéis</title>
+<style>
+  :root{--blue:#1d4ed8;--blue-dark:#1e3a8a;--amber:#fbbf24;--ink:#1f2937;--muted:#6b7280;--line:#e5e7eb;--bg:#f1f5f9;--card:#fff}
+  *{box-sizing:border-box}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg);margin:0;line-height:1.65}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px 80px}
+  .hero{background:linear-gradient(135deg,#1e3a8a,#1d4ed8 60%,#2563eb);color:#fff;padding:44px 24px 52px;position:relative;overflow:hidden}
+  .hero::after{content:"";position:absolute;right:-70px;top:-70px;width:240px;height:240px;border-radius:50%;background:rgba(251,191,36,.18)}
+  .hero-inner{max-width:880px;margin:0 auto;position:relative;z-index:2}
+  .badge{display:inline-flex;align-items:center;gap:10px;background:rgba(255,255,255,.12);padding:7px 14px;border-radius:999px;font-weight:700;font-size:13px;letter-spacing:.04em}
+  .mark{width:30px;height:30px;border-radius:8px;background:var(--amber);color:var(--blue-dark);display:grid;place-items:center;font-weight:800}
+  .hero h1{font-size:30px;margin:18px 0 4px;letter-spacing:-.02em}
+  .hero .sub{color:#dbeafe;font-size:16px}
+  .hero .accent{width:56px;height:4px;background:var(--amber);border-radius:999px;margin:14px 0 0}
+  .card{background:var(--card);border:1px solid #e3e8f2;border-radius:16px;padding:22px 24px;margin:22px 0;box-shadow:0 2px 10px rgba(30,58,138,.05)}
+  h2.sec{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--blue);margin:34px 0 2px}
+  .sec-sub{color:var(--muted);font-size:14px;margin:0 0 14px}
+  .oneliner{font-size:17px;font-weight:600;color:var(--blue-dark);background:#eff6ff;border-left:4px solid var(--amber);padding:14px 18px;border-radius:0 12px 12px 0}
+  .files{display:flex;flex-wrap:wrap;gap:7px;margin-top:6px}
+  .file{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;background:#eef2ff;border:1px solid #dbe2f5;color:#1e3a8a;padding:4px 9px;border-radius:7px}
+  .step{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--line)}
+  .step:last-child{border-bottom:0}
+  .step .n{flex:none;width:30px;height:30px;border-radius:9px;background:var(--blue);color:#fff;font-weight:700;display:grid;place-items:center;font-size:14px}
+  .step h4{margin:0 0 4px;font-size:15px}
+  .step .where{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--muted);margin-bottom:6px}
+  .step p{margin:6px 0;font-size:14px}
+  .say{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px 13px;font-size:13.5px;color:#78350f;margin-top:8px}
+  .say::before{content:"🗣️ Fala sugerida: ";font-weight:700}
+  code{font-family:ui-monospace,Consolas,monospace;font-size:.9em;background:#eef2ff;color:#1e3a8a;padding:1px 5px;border-radius:5px}
+  .callout{background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:12px 15px;font-size:13.5px;color:#065f46;margin-top:10px}
+  .qa{margin:10px 0;padding:12px 15px;background:#f8fafc;border:1px solid var(--line);border-radius:10px}
+  .qa .q{font-weight:700;color:var(--blue-dark);font-size:14px}
+  .qa .a{font-size:13.5px;margin-top:4px;color:#374151}
+  ul.clean{margin:6px 0;padding-left:20px;font-size:14px}
+  ul.clean li{margin:3px 0}
+  .time{display:inline-block;background:var(--amber);color:#78350f;font-weight:700;font-size:12px;padding:3px 10px;border-radius:999px}
+  footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:40px;padding-top:20px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <span class="badge"><span class="mark">7</span> AMA · Guia de Apresentação</span>
+      <h1>Gestão de Usuários &amp; Papéis</h1>
+      <div class="sub">Integrante 7 — administradores, voluntários e área restrita</div>
+      <div class="accent"></div>
+    </div>
+  </header>
+
+  <div class="wrap">
+
+    <div class="card">
+      <h2 class="sec" style="margin-top:0">Antes de começar</h2>
+      <ul class="clean">
+        <li>Rode <code>npm run dev</code> e <strong>entre como admin</strong> (<code>admin@ama.org</code> / <code>admin123</code>) — só admin vê sua aba.</li>
+        <li>Clique na aba <strong>Usuários</strong>: lista de contas, com papel (Administrador/Voluntário) e ações.</li>
+        <li>Demonstração marcante: faça logout, entre como voluntário (<code>ana.voluntaria@ama.org</code> / <code>senha123</code>) e mostre que a aba Usuários <strong>some</strong>.</li>
+      </ul>
+      <div class="files">
+        <span class="file">src/hooks/useUsers.ts</span>
+        <span class="file">src/components/UserManagement.tsx</span>
+        <span class="file">src/lib/storage.ts (updateUserRole, deleteUser, getUsers)</span>
+        <span class="file">src/pages/Home.tsx (filtro adminOnly das abas)</span>
+      </div>
+    </div>
+
+    <h2 class="sec">Seu módulo em uma frase</h2>
+    <div class="oneliner">
+      “Eu fiz a administração de contas e o controle de papéis: quem é admin, quem é voluntário,
+      quem pode promover, rebaixar ou remover usuários — e a <strong>área restrita</strong> que só o admin enxerga.”
+    </div>
+
+    <h2 class="sec">Roteiro passo a passo</h2>
+    <div class="card">
+      <div class="step">
+        <div class="n">1</div>
+        <div>
+          <h4>O controle de acesso à aba</h4>
+          <div class="where">Abra: src/pages/Home.tsx → const TABS e visibleTabs</div>
+          <p>Mostre que a aba <code>usuarios</code> tem a marca <code>adminOnly: true</code>, e que <code>visibleTabs</code> filtra as abas
+          conforme <code>isAdmin</code>. Mostre também, mais abaixo, que a tela só renderiza <code>{activeTab === "usuarios" &amp;&amp; isAdmin}</code>
+          — ou seja, há proteção dupla.</p>
+          <div class="say">“A primeira coisa do meu módulo é o controle de acesso: a aba de usuários só aparece para administradores. E mesmo que alguém tentasse forçar, a tela checa de novo se a pessoa é admin antes de renderizar.”</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="n">2</div>
+        <div>
+          <h4>As ações sobre usuários (o hook)</h4>
+          <div class="where">Abra: src/hooks/useUsers.ts</div>
+          <p>Mostre <code>changeRole</code> (promover/rebaixar), <code>removeUser</code> (excluir) e <code>isProtected</code> — que protege
+          o admin padrão (<code>admin@ama.org</code>) de ser editado ou removido. Mostre também <code>adminCount</code>.</p>
+          <div class="say">“Aqui ficam as ações: mudar o papel de alguém e remover contas. Coloquei uma trava: o administrador padrão é permanente, não pode ser rebaixado nem apagado, pra nunca ficarmos sem acesso de admin.”</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="n">3</div>
+        <div>
+          <h4>As regras na camada de dados</h4>
+          <div class="where">Abra: src/lib/storage.ts → updateUserRole, deleteUser, getUsers</div>
+          <p>Mostre que <code>updateUserRole</code> e <code>deleteUser</code> recusam mexer no admin padrão, e que a mudança de papel
+          é <strong>registrada no Histórico</strong>. Destaque que <code>getUsers</code> devolve os usuários <strong>sem a senha</strong> — só
+          e-mail, papel e data de criação.</p>
+          <div class="say">“Quando exibo a lista, eu nunca exponho a senha — só e-mail, papel e data. E toda promoção ou rebaixamento fica registrado na auditoria.”</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="n">4</div>
+        <div>
+          <h4>A tela</h4>
+          <div class="where">Abra: src/components/UserManagement.tsx · e demonstre no navegador</div>
+          <p>Mostre a tabela de usuários com o seletor de papel e o botão de remover, e o admin padrão aparecendo como
+          protegido. Faça a demonstração do topo (voluntário não vê a aba).</p>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="sec">Como seu módulo conversa com o resto</h2>
+    <div class="card">
+      <ul class="clean">
+        <li>Depende diretamente da <strong>Autenticação</strong> (Integrante 1): é o <code>isAdmin</code> que libera sua aba.</li>
+        <li>Usa os tipos de papel (<code>UserRole</code>, <code>ROLE_LABELS</code>) definidos junto com a autenticação.</li>
+        <li>Suas ações são <strong>registradas no Histórico</strong> (Integrante 5).</li>
+        <li>Lê e grava usuários pela camada <code>storage.ts</code> (Integrante 9).</li>
+      </ul>
+    </div>
+
+    <h2 class="sec">Sugestão de fala <span class="time">~4 min</span></h2>
+    <div class="card">
+      <ul class="clean">
+        <li><strong>0:00–0:40</strong> — Como admin, mostre a aba Usuários: “eu cuido de quem pode o quê no sistema”.</li>
+        <li><strong>0:40–1:30</strong> — <code>Home.tsx</code>: a aba <code>adminOnly</code> e a proteção dupla.</li>
+        <li><strong>1:30–2:30</strong> — <code>useUsers.ts</code> e <code>storage.ts</code>: mudar papel, remover e o admin protegido.</li>
+        <li><strong>2:30–4:00</strong> — Demonstração: troque o papel de alguém; depois entre como voluntário e mostre a aba sumindo.</li>
+      </ul>
+    </div>
+
+    <h2 class="sec">Perguntas que o professor pode fazer</h2>
+    <div class="card">
+      <div class="qa"><div class="q">Como a aba de usuários fica restrita ao admin?</div><div class="a">As abas são filtradas por <code>isAdmin</code> (a marca <code>adminOnly</code>), e a tela ainda revalida <code>isAdmin</code> antes de renderizar o conteúdo — proteção em duas camadas.</div></div>
+      <div class="qa"><div class="q">Por que o admin padrão não pode ser removido?</div><div class="a">Para garantir que o sistema nunca fique sem nenhum administrador. As funções de mudar papel e excluir recusam agir sobre <code>admin@ama.org</code>.</div></div>
+      <div class="qa"><div class="q">A senha aparece na listagem?</div><div class="a">Não. A função <code>getUsers</code> devolve apenas e-mail, papel e data de criação — a senha nunca é exposta para a interface.</div></div>
+      <div class="qa"><div class="q">O que é “papel” (role) aqui?</div><div class="a">É o nível de permissão do usuário: administrador (acesso total, inclusive à gestão de usuários) ou voluntário (acesso às operações do dia a dia).</div></div>
+    </div>
+
+    <footer>AMA · Amigos Mãos Abertas — Guia de apresentação individual · Integrante 7</footer>
+  </div>
+</body>
+</html>

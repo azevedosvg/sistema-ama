@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Guia de Apresentação · Integrante 8 — Design System &amp; Componentes-base</title>
+<style>
+  :root{--blue:#1d4ed8;--blue-dark:#1e3a8a;--amber:#fbbf24;--ink:#1f2937;--muted:#6b7280;--line:#e5e7eb;--bg:#f1f5f9;--card:#fff}
+  *{box-sizing:border-box}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg);margin:0;line-height:1.65}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px 80px}
+  .hero{background:linear-gradient(135deg,#1e3a8a,#1d4ed8 60%,#2563eb);color:#fff;padding:44px 24px 52px;position:relative;overflow:hidden}
+  .hero::after{content:"";position:absolute;right:-70px;top:-70px;width:240px;height:240px;border-radius:50%;background:rgba(251,191,36,.18)}
+  .hero-inner{max-width:880px;margin:0 auto;position:relative;z-index:2}
+  .badge{display:inline-flex;align-items:center;gap:10px;background:rgba(255,255,255,.12);padding:7px 14px;border-radius:999px;font-weight:700;font-size:13px;letter-spacing:.04em}
+  .mark{width:30px;height:30px;border-radius:8px;background:var(--amber);color:var(--blue-dark);display:grid;place-items:center;font-weight:800}
+  .hero h1{font-size:30px;margin:18px 0 4px;letter-spacing:-.02em}
+  .hero .sub{color:#dbeafe;font-size:16px}
+  .hero .accent{width:56px;height:4px;background:var(--amber);border-radius:999px;margin:14px 0 0}
+  .card{background:var(--card);border:1px solid #e3e8f2;border-radius:16px;padding:22px 24px;margin:22px 0;box-shadow:0 2px 10px rgba(30,58,138,.05)}
+  h2.sec{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--blue);margin:34px 0 2px}
+  .sec-sub{color:var(--muted);font-size:14px;margin:0 0 14px}
+  .oneliner{font-size:17px;font-weight:600;color:var(--blue-dark);background:#eff6ff;border-left:4px solid var(--amber);padding:14px 18px;border-radius:0 12px 12px 0}
+  .files{display:flex;flex-wrap:wrap;gap:7px;margin-top:6px}
+  .file{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;background:#eef2ff;border:1px solid #dbe2f5;color:#1e3a8a;padding:4px 9px;border-radius:7px}
+  .step{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--line)}
+  .step:last-child{border-bottom:0}
+  .step .n{flex:none;width:30px;height:30px;border-radius:9px;background:var(--blue);color:#fff;font-weight:700;display:grid;place-items:center;font-size:14px}
+  .step h4{margin:0 0 4px;font-size:15px}
+  .step .where{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--muted);margin-bottom:6px}
+  .step p{margin:6px 0;font-size:14px}
+  .say{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px 13px;font-size:13.5px;color:#78350f;margin-top:8px}
+  .say::before{content:"🗣️ Fala sugerida: ";font-weight:700}
+  code{font-family:ui-monospace,Consolas,monospace;font-size:.9em;background:#eef2ff;color:#1e3a8a;padding:1px 5px;border-radius:5px}
+  .callout{background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:12px 15px;font-size:13.5px;color:#065f46;margin-top:10px}
+  .qa{margin:10px 0;padding:12px 15px;background:#f8fafc;border:1px solid var(--line);border-radius:10px}
+  .qa .q{font-weight:700;color:var(--blue-dark);font-size:14px}
+  .qa .a{font-size:13.5px;margin-top:4px;color:#374151}
+  ul.clean{margin:6px 0;padding-left:20px;font-size:14px}
+  ul.clean li{margin:3px 0}
+  .time{display:inline-block;background:var(--amber);color:#78350f;font-weight:700;font-size:12px;padding:3px 10px;border-radius:999px}
+  footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:40px;padding-top:20px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <span class="badge"><span class="mark">8</span> AMA · Guia de Apresentação</span>
+      <h1>Design System &amp; Componentes-base</h1>
+      <div class="sub">Integrante 8 — a identidade visual e os blocos de UI reutilizados por todos</div>
+      <div class="accent"></div>
+    </div>
+  </header>
+
+  <div class="wrap">
+
+    <div class="card">
+      <h2 class="sec" style="margin-top:0">Antes de começar</h2>
+      <ul class="clean">
+        <li>Rode <code>npm run dev</code> e faça login. Sua parte está “espalhada” por toda a interface, então navegue mostrando os elementos repetidos.</li>
+        <li>Para a demo, prepare: <strong>excluir um produto</strong> (aparece seu <em>diálogo de confirmação</em>), e <strong>encolher a janela</strong> (aparece a <em>barra de navegação inferior</em> no mobile).</li>
+        <li><strong>Leia cada arquivo da pasta <code>ui/</code> antes</strong> — são curtos e é onde está o miolo da sua fala.</li>
+      </ul>
+      <div class="files">
+        <span class="file">src/components/ui/Modal.tsx</span>
+        <span class="file">src/components/ui/Toast.tsx</span>
+        <span class="file">src/components/ui/ConfirmDialog.tsx</span>
+        <span class="file">src/components/ui/EmptyState.tsx</span>
+        <span class="file">src/components/Logo.tsx</span>
+        <span class="file">src/components/LogoMark.tsx</span>
+        <span class="file">src/components/BottomNav.tsx</span>
+        <span class="file">src/components/Footer.tsx</span>
+        <span class="file">src/components/ScrollToTopButton.tsx</span>
+        <span class="file">src/index.css</span>
+      </div>
+    </div>
+
+    <h2 class="sec">Seu módulo em uma frase</h2>
+    <div class="oneliner">
+      “Eu fiz a base visual do sistema: os componentes reutilizáveis — modais, avisos, confirmações — a
+      identidade da marca AMA e o padrão de cores que <strong>todos os outros módulos usam</strong>.”
+    </div>
+    <div class="callout">Dica: a força da sua fala é o conceito de <strong>reaproveitamento</strong>. Você não fez “uma tela”, fez as peças que aparecem em todas elas. Sem o seu trabalho, cada colega teria reinventado botão, modal e cor.</div>
+
+    <h2 class="sec">Roteiro passo a passo</h2>
+    <div class="card">
+      <div class="step">
+        <div class="n">1</div>
+        <div>
+          <h4>O sistema de avisos (Toast)</h4>
+          <div class="where">Abra: src/components/ui/Toast.tsx · veja o uso em App.tsx (&lt;ToastProvider&gt;) e em Home.tsx (useToast)</div>
+          <p>Mostre que o <code>ToastProvider</code> envolve toda a aplicação no <code>App.tsx</code>, e que qualquer módulo chama
+          <code>useToast()</code> para exibir uma notificação (ex.: “Produto excluído”). É um recurso central, usado por vários colegas.</p>
+          <div class="say">“Esse é um bom exemplo do meu papel: eu criei um sistema de avisos global. Em vez de cada tela inventar o seu, qualquer parte do sistema chama <code>useToast</code> e o aviso aparece padronizado.”</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="n">2</div>
+        <div>
+          <h4>O diálogo de confirmação</h4>
+          <div class="where">Abra: src/components/ui/ConfirmDialog.tsx · veja o uso em Home.tsx (excluir produto)</div>
+          <p>Mostre que ele recebe <code>open</code>, <code>title</code>, <code>message</code>, <code>onConfirm</code> e <code>onCancel</code>.
+          Explique que ele substitui o feio <code>window.confirm</code> nativo por um modal bonito e consistente — e é por isso que a
+          exclusão de produto (Integrante 2) usa o seu componente.</p>
+          <div class="say">“Quando você exclui um produto, aquele modal de ‘tem certeza?’ é meu. Eu o fiz genérico: recebe título, mensagem e o que fazer ao confirmar, então serve pra qualquer confirmação do sistema.”</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="n">3</div>
+        <div>
+          <h4>Modal e estado vazio</h4>
+          <div class="where">Abra: src/components/ui/Modal.tsx e src/components/ui/EmptyState.tsx</div>
+          <p>Mostre o <code>Modal</code> base (a “janela” reutilizável sobre a qual o ConfirmDialog é construído) e o
+          <code>EmptyState</code> (a mensagem amigável de “nada por aqui” quando uma lista está vazia).</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="n">4</div>
+        <div>
+          <h4>Identidade visual e navegação</h4>
+          <div class="where">Abra: Logo.tsx, LogoMark.tsx, BottomNav.tsx, Footer.tsx, ScrollToTopButton.tsx</div>
+          <p>Mostre o logo (usado no login e no header) e, no navegador, encolha a janela para revelar a <strong>barra de navegação
+          inferior</strong> (<code>BottomNav</code>), que espelha as abas no celular. Mostre o rodapé e o botão de voltar ao topo.</p>
+          <div class="say">“Cuidei também da identidade: o logo da AMA e a navegação. No celular, as abas viram essa barra inferior. São detalhes que dão acabamento profissional ao sistema.”</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="n">5</div>
+        <div>
+          <h4>O padrão de cores</h4>
+          <div class="where">Abra: src/index.css · e cite o uso do Tailwind</div>
+          <p>Explique a paleta: azul (<code>blue-700</code>) como cor principal, âmbar (<code>amber-400</code>) como destaque, e as cores
+          de status (vermelho/laranja/âmbar/verde). É a base visual que dá unidade a todas as telas.</p>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="sec">Como seu módulo conversa com o resto</h2>
+    <div class="card">
+      <ul class="clean">
+        <li>O <code>ToastProvider</code> envolve o app inteiro (em <code>App.tsx</code>) — todos os módulos podem disparar avisos.</li>
+        <li>O <code>ConfirmDialog</code> é usado pela exclusão de produtos (Integrante 2) e serve para qualquer confirmação.</li>
+        <li>O <code>BottomNav</code> recebe as abas e a aba ativa da <code>Home.tsx</code> e reflete a mesma navegação no mobile.</li>
+        <li>O logo aparece no login (Integrante 1) e no cabeçalho principal.</li>
+      </ul>
+    </div>
+
+    <h2 class="sec">Sugestão de fala <span class="time">~4 min</span></h2>
+    <div class="card">
+      <ul class="clean">
+        <li><strong>0:00–0:40</strong> — “Eu fiz as peças reutilizáveis que aparecem em todo o sistema.” Mostre um toast e o logo.</li>
+        <li><strong>0:40–1:40</strong> — Toast e ConfirmDialog: o conceito de componente genérico usado por vários colegas.</li>
+        <li><strong>1:40–2:30</strong> — Modal, EmptyState e a paleta de cores.</li>
+        <li><strong>2:30–3:20</strong> — Identidade e navegação: logo + BottomNav (encolha a janela ao vivo).</li>
+        <li><strong>3:20–4:00</strong> — Demonstração: exclua um produto para mostrar seu diálogo + o toast em ação.</li>
+      </ul>
+    </div>
+
+    <h2 class="sec">Perguntas que o professor pode fazer</h2>
+    <div class="card">
+      <div class="qa"><div class="q">Por que criar componentes reutilizáveis em vez de fazer caso a caso?</div><div class="a">Para manter consistência visual e evitar repetição de código. Um único <code>ConfirmDialog</code> ou <code>Toast</code> é usado por todo o sistema; se eu mudar num lugar, muda em todos.</div></div>
+      <div class="qa"><div class="q">O que é um “Provider” no Toast?</div><div class="a">É um componente de contexto que envolve a aplicação e disponibiliza a função de notificar a qualquer tela, sem precisar passar props manualmente.</div></div>
+      <div class="qa"><div class="q">Por que não usar o <code>window.confirm</code> do navegador?</div><div class="a">Porque ele é genérico e quebra a identidade visual. O <code>ConfirmDialog</code> é integrado ao design, mais claro e consistente com o resto do sistema.</div></div>
+      <div class="qa"><div class="q">Qual a lógica da paleta de cores?</div><div class="a">Azul como cor institucional, âmbar como destaque, e um código de cores de status (vermelho/laranja/âmbar/verde) que se repete em todo o sistema para indicar gravidade.</div></div>
+    </div>
+
+    <footer>AMA · Amigos Mãos Abertas — Guia de apresentação individual · Integrante 8</footer>
+  </div>
+</body>
+</html>

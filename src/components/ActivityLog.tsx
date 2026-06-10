@@ -36,7 +36,7 @@ const ACTION_FILTERS: { value: "" | ActivityAction; label: string }[] = [
 ];
 
 const selectCls =
-  "px-3 py-2 rounded-xl border border-blue-100 bg-gray-50 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all";
+  "min-w-0 max-w-full truncate px-3 py-2 rounded-xl border border-blue-100 bg-gray-50 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all";
 
 // ─── Date helpers ───────────────────────────────────────────────────────────────
 
@@ -196,7 +196,7 @@ export default function ActivityLog() {
             <option key={f.value} value={f.value}>{f.label}</option>
           ))}
         </select>
-        <select value={userFilter} onChange={(e) => setUserFilter(e.target.value)} className={selectCls}>
+        <select value={userFilter} onChange={(e) => setUserFilter(e.target.value)} className={`${selectCls} sm:w-48`}>
           <option value="">Todos os usuários</option>
           {users.map((u) => (
             <option key={u} value={u}>{u}</option>

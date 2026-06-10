@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Guia de Apresentação · Integrante 2 — Módulo de Produtos (Estoque)</title>
+<style>
+  :root{--blue:#1d4ed8;--blue-dark:#1e3a8a;--amber:#fbbf24;--ink:#1f2937;--muted:#6b7280;--line:#e5e7eb;--bg:#f1f5f9;--card:#fff}
+  *{box-sizing:border-box}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg);margin:0;line-height:1.65}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px 80px}
+  .hero{background:linear-gradient(135deg,#1e3a8a,#1d4ed8 60%,#2563eb);color:#fff;padding:44px 24px 52px;position:relative;overflow:hidden}
+  .hero::after{content:"";position:absolute;right:-70px;top:-70px;width:240px;height:240px;border-radius:50%;background:rgba(251,191,36,.18)}
+  .hero-inner{max-width:880px;margin:0 auto;position:relative;z-index:2}
+  .badge{display:inline-flex;align-items:center;gap:10px;background:rgba(255,255,255,.12);padding:7px 14px;border-radius:999px;font-weight:700;font-size:13px;letter-spacing:.04em}
+  .mark{width:30px;height:30px;border-radius:8px;background:var(--amber);color:var(--blue-dark);display:grid;place-items:center;font-weight:800}
+  .hero h1{font-size:30px;margin:18px 0 4px;letter-spacing:-.02em}
+  .hero .sub{color:#dbeafe;font-size:16px}
+  .hero .accent{width:56px;height:4px;background:var(--amber);border-radius:999px;margin:14px 0 0}
+  .card{background:var(--card);border:1px solid #e3e8f2;border-radius:16px;padding:22px 24px;margin:22px 0;box-shadow:0 2px 10px rgba(30,58,138,.05)}
+  h2.sec{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--blue);margin:34px 0 2px}
+  .sec-sub{color:var(--muted);font-size:14px;margin:0 0 14px}
+  .oneliner{font-size:17px;font-weight:600;color:var(--blue-dark);background:#eff6ff;border-left:4px solid var(--amber);padding:14px 18px;border-radius:0 12px 12px 0}
+  .files{display:flex;flex-wrap:wrap;gap:7px;margin-top:6px}
+  .file{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;background:#eef2ff;border:1px solid #dbe2f5;color:#1e3a8a;padding:4px 9px;border-radius:7px}
+  .step{display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--line)}
+  .step:last-child{border-bottom:0}
+  .step .n{flex:none;width:30px;height:30px;border-radius:9px;background:var(--blue);color:#fff;font-weight:700;display:grid;place-items:center;font-size:14px}
+  .step h4{margin:0 0 4px;font-size:15px}
+  .step .where{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--muted);margin-bottom:6px}
+  .step p{margin:6px 0;font-size:14px}
+  .say{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px 13px;font-size:13.5px;color:#78350f;margin-top:8px}
+  .say::before{content:"🗣️ Fala sugerida: ";font-weight:700}
+  code{font-family:ui-monospace,Consolas,monospace;font-size:.9em;background:#eef2ff;color:#1e3a8a;padding:1px 5px;border-radius:5px}
+  .callout{background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:12px 15px;font-size:13.5px;color:#065f46;margin-top:10px}
+  .qa{margin:10px 0;padding:12px 15px;background:#f8fafc;border:1px solid var(--line);border-radius:10px}
+  .qa .q{font-weight:700;color:var(--blue-dark);font-size:14px}
+  .qa .a{font-size:13.5px;margin-top:4px;color:#374151}
+  ul.clean{margin:6px 0;padding-left:20px;font-size:14px}
+  ul.clean li{margin:3px 0}
+  .time{display:inline-block;background:var(--amber);color:#78350f;font-weight:700;font-size:12px;padding:3px 10px;border-radius:999px}
+  footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:40px;padding-top:20px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <span class="badge"><span class="mark">2</span> AMA · Guia de Apresentação</span>
+      <h1>Módulo de Produtos (Estoque)</h1>
+      <div class="sub">Integrante 2 — cadastro, edição, filtros e a lógica de validade dos produtos</div>
+      <div class="accent"></div>
+    </div>
+  </header>
+
+  <div class="wrap">
+
+    <div class="card">
+      <h2 class="sec" style="margin-top:0">Antes de começar</h2>
+      <p class="sec-sub">Esse é o coração do sistema — vale chegar com ele rodando.</p>
+      <ul class="clean">
+        <li>Rode <code>npm run dev</code> e faça login com <code>admin@ama.org</code> / <code>admin123</code>.</li>
+        <li>Clique na aba <strong>Estoque</strong> — é a sua tela: o formulário em cima e a lista de produtos embaixo.</li>
+        <li>Repare nas cores das faixas dos cards (vermelho = vencido, laranja = crítico, âmbar = atenção, verde = seguro). Essa lógica é sua.</li>
+      </ul>
+      <div class="files">
+        <span class="file">src/hooks/useProducts.ts</span>
+        <span class="file">src/lib/productUtils.ts</span>
+        <span class="file">src/types/product.ts</span>
+        <span class="file">src/components/ProductForm.tsx</span>
+        <span class="file">src/components/ProductCard.tsx</span>
+        <span class="file">src/components/ProductList.tsx</span>
+        <span class="file">src/components/ProductFilters.tsx</span>
+      </div>
+    </div>
+
+    <h2 class="sec">Seu módulo em uma frase</h2>
+    <div class="oneliner">
+      “Eu fiz o gerenciamento de produtos: cadastrar, editar, excluir, buscar e filtrar — e a lógica que
+      calcula automaticamente o <strong>status de validade</strong> e o <strong>valor em risco</strong> de cada item.”
+    </div>
+
+    <h2 class="sec">Roteiro passo a passo</h2>
+    <p class="sec-sub">Comece pelo tipo de dado, vá para a lógica pura e termine na interface.</p>
+
+    <div class="card">
+      <div class="step">
+        <div class="n">1</div>
+        <div>
+          <h4>O formato de um produto</h4>
+          <div class="where">Abra: src/types/product.ts</div>
+          <p>Mostre o tipo <code>Product</code>. Separe mentalmente os campos em dois grupos: os que o usuário digita
+          (<code>name</code>, <code>category</code>, <code>quantity</code>, <code>unitCost</code>, <code>expirationDate</code>, <code>isDonation</code>, <code>minStock</code>)
+          e os <strong>calculados</strong> (<code>status</code>, <code>daysToExpire</code>, <code>riskValue</code>, <code>lowStock</code>).</p>
+          <div class="say">“O produto tem campos que o usuário preenche e campos que o sistema calcula sozinho — como o status de vencimento e o valor em risco. Essa separação foi proposital.”</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="n">2</div>
+        <div>
+          <h4>A lógica pura (o cérebro do módulo)</h4>
+          <div class="where">Abra: src/lib/productUtils.ts</div>
+          <p>Aqui está a parte mais “impressionante” de mostrar. Aponte para:</p>
+          <ul class="clean">
+            <li><code>PERISHABLE_CATEGORIES</code> e <code>isPerishable()</code> — quais categorias exigem validade.</li>
+            <li><code>getDaysToExpire()</code> — calcula quantos dias faltam para vencer.</li>
+            <li><code>getProductStatus()</code> — as regras: <code>&lt;0</code> vencido, <code>≤7</code> crítico, <code>≤30</code> atenção, senão seguro.</li>
+            <li><code>enrich()</code> — pega o produto “cru” e devolve com os campos calculados (status, riskValue etc.).</li>
+            <li><code>calcDashboard()</code> — conta quantos produtos há em cada status (alimenta o painel do Integrante 6).</li>
+          </ul>
+          <div class="say">“Eu isolei toda a regra de negócio aqui, separada da interface. A função <code>enrich</code> recebe o produto cru e calcula o status pela data de validade, e o <code>riskValue</code> (quantidade × custo) só para itens críticos ou vencidos. Assim a tela só exibe, não calcula.”</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="n">3</div>
+        <div>
+          <h4>O estado e as ações (o hook)</h4>
+          <div class="where">Abra: src/hooks/useProducts.ts</div>
+          <p>É o arquivo maior — não precisa ler linha a linha. Mostre os blocos principais:</p>
+          <ul class="clean">
+            <li><code>refresh()</code> — lê os produtos e recalcula o dashboard.</li>
+            <li><code>handleInputChange()</code> — repare no detalhe: ao escolher categoria não perecível, limpa a validade; ao marcar “doação”, limpa o custo.</li>
+            <li><code>validateForm()</code> — valida nome, categoria, quantidade &gt; 0, custo (se não for doação), validade (se perecível).</li>
+            <li><code>handleSubmitProduct()</code> — decide entre <code>createProduct</code> e <code>updateProduct</code>.</li>
+            <li><code>displayedProducts</code> — o <code>.filter().sort()</code> que aplica busca, filtros e ordenação.</li>
+            <li>Paginação: <code>PAGE_SIZE = 6</code>, <code>visibleProducts</code> e <code>showMore()</code> (“Ver mais”).</li>
+            <li>Exclusão em duas etapas: <code>requestDeleteProduct</code> abre o diálogo de confirmação em vez do alerta nativo.</li>
+          </ul>
+          <div class="say">“Esse hook concentra todo o estado da tela de estoque: o formulário, os filtros e a paginação. Ele conversa com a camada de dados para criar, editar e excluir, e sempre dá um <code>refresh</code> pra tela refletir a mudança.”</div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="n">4</div>
+        <div>
+          <h4>A interface</h4>
+          <div class="where">Abra: ProductForm.tsx, ProductFilters.tsx, ProductList.tsx, ProductCard.tsx · e mostre no navegador</div>
+          <p>Demonstre ao vivo: cadastre um produto, edite-o e use a busca/filtros. Mostre que o campo de validade
+          <strong>some</strong> quando você escolhe “Roupas” (não perecível) e o campo de custo some ao marcar “Doação”.</p>
+          <div class="say">“O formulário é dinâmico: ele esconde campos que não fazem sentido — não pedimos validade para uma roupa, nem custo para uma doação. Cada produto vira um card com a cor do seu status.”</div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="sec">Como seu módulo conversa com o resto</h2>
+    <div class="card">
+      <ul class="clean">
+        <li>Quando você cria/edita/exclui, chama a camada <code>storage.ts</code> (Integrante 9), que <strong>registra a ação no Histórico</strong> (Integrante 5) automaticamente.</li>
+        <li>O <code>calcDashboard()</code> que você fez alimenta os cards de indicadores do <strong>Dashboard</strong> (Integrante 6).</li>
+        <li>O módulo de <strong>Movimentação</strong> (Integrante 4) altera a <code>quantity</code> dos seus produtos quando há entrada/saída.</li>
+        <li>A página <code>Home.tsx</code> chama o seu <code>useProducts()</code> e distribui os dados para os componentes visuais.</li>
+      </ul>
+    </div>
+
+    <h2 class="sec">Sugestão de fala <span class="time">~5 min</span></h2>
+    <div class="card">
+      <ul class="clean">
+        <li><strong>0:00–0:40</strong> — Mostre a aba Estoque rodando: “essa é a parte central do sistema”.</li>
+        <li><strong>0:40–1:20</strong> — <code>types/product.ts</code>: campos digitados × calculados.</li>
+        <li><strong>1:20–2:50</strong> — <code>productUtils.ts</code>: regras de status, <code>enrich</code> e valor em risco. (parte mais técnica)</li>
+        <li><strong>2:50–4:00</strong> — <code>useProducts.ts</code>: form dinâmico, validação, filtros e paginação.</li>
+        <li><strong>4:00–5:00</strong> — Demonstração ao vivo: cadastrar, editar, filtrar, excluir.</li>
+      </ul>
+    </div>
+
+    <h2 class="sec">Perguntas que o professor pode fazer</h2>
+    <div class="card">
+      <div class="qa"><div class="q">Qual a diferença entre campo “cru” e campo calculado?</div><div class="a">O usuário só informa quantidade, custo e validade. O status, os dias para vencer e o valor em risco são derivados pela função <code>enrich</code> — não são salvos digitados, são recalculados sempre que lemos o produto.</div></div>
+      <div class="qa"><div class="q">Como o status de vencimento é decidido?</div><div class="a">Pela diferença em dias até a data de validade: menos de 0 = vencido, até 7 = crítico, até 30 = atenção, acima disso (ou sem validade) = seguro.</div></div>
+      <div class="qa"><div class="q">Por que separar a lógica em <code>productUtils.ts</code>?</div><div class="a">Para separar regra de negócio da interface. Assim a lógica fica testável e reutilizável, e os componentes só exibem o resultado.</div></div>
+      <div class="qa"><div class="q">O que é o “estoque baixo”?</div><div class="a">Cada produto pode ter um estoque mínimo (<code>minStock</code>). Quando a quantidade chega nesse nível ou abaixo, <code>isLowStock</code> marca <code>lowStock = true</code> e o produto pode ser filtrado por isso.</div></div>
+    </div>
+
+    <footer>AMA · Amigos Mãos Abertas — Guia de apresentação individual · Integrante 2</footer>
+  </div>
+</body>
+</html>

@@ -2,6 +2,11 @@ import { useMemo, useState } from "react";
 import type { Activity, ActivityAction } from "../types/activity";
 import { getActivities } from "../lib/storage";
 
+// Normaliza para busca: minúsculas e sem acentos, para que "saida" encontre "Saída"
+function norm(s: string): string {
+  return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+}
+
 export function useActivities() {
   const [activities, setActivities] = useState<Activity[]>(() => getActivities());
   const [search, setSearch] = useState("");
@@ -18,14 +23,14 @@ export function useActivities() {
   );
 
   const displayed = useMemo(() => {
-    const q = search.trim().toLowerCase();
+    const q = norm(search.trim());
     return activities.filter((a) => {
       const matchesSearch =
         !q ||
-        a.target.toLowerCase().includes(q) ||
-        a.user.toLowerCase().includes(q) ||
-        a.entity.toLowerCase().includes(q) ||
-        (a.changes ?? []).some((c) => c.label.toLowerCase().includes(q));
+        norm(a.target).includes(q) ||
+        norm(a.user).includes(q) ||
+        norm(a.entity).includes(q) ||
+        (a.changes ?? []).some((c) => norm(c.label).includes(q));
       const matchesAction = !actionFilter || a.action === actionFilter;
       const matchesUser = !userFilter || a.user === userFilter;
       return matchesSearch && matchesAction && matchesUser;
