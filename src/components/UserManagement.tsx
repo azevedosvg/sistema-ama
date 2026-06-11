@@ -1,3 +1,14 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · INTEGRANTE 7 — Gestão de Usuários & Papéis
+ * PASSO 4 do roteiro: "A tela" (~2:30–4:00) · DEMONSTRE NO NAVEGADOR
+ *
+ * O que mostrar: a tabela de usuários com o seletor de papel e o botão de
+ * remover, e o admin padrão aparecendo como protegido (cadeado).
+ *
+ * Demonstração marcante: troque o papel de alguém; depois faça logout, entre
+ * como voluntário (ana.voluntaria@ama.org / senha123) e mostre que a aba
+ * Usuários SOME do menu.
+ * ========================================================================== */
 import { motion } from "framer-motion";
 import { Lock, Shield, ShieldCheck, Trash2, UserCog, Users } from "lucide-react";
 import { useState } from "react";

@@ -1,3 +1,9 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · INTEGRANTE 8 — Design System & Componentes-base
+ * PASSO 4 do roteiro: "Identidade visual e navegação" (~2:30–3:20)
+ * O emblema vetorial (SVG) da marca — nítido em qualquer tamanho, usado no
+ * header e no rodapé.
+ * ========================================================================== */
 type Props = {
   size?: number;
   className?: string;

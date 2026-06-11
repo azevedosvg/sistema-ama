@@ -1,3 +1,11 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · INTEGRANTE 1 — Autenticação & Controle de Acesso
+ * Complemento do PASSO 4: a tela de cadastro.
+ *
+ * Não precisa abrir slide a slide — basta CITAR durante o passo 4:
+ * "A tela de cadastro segue o mesmo padrão da de login, chamando registerUser;
+ * se o e-mail já existe, mostro o erro 'Este email já está cadastrado'."
+ * ========================================================================== */
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";

@@ -1,3 +1,24 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · INTEGRANTE 2 — Módulo de Produtos (Estoque)
+ * PASSO 3 do roteiro: "O estado e as ações — o hook" (~2:50–4:00)
+ *
+ * É o arquivo maior — NÃO leia linha a linha. Mostre só os blocos marcados
+ * com [INT. 2 · PASSO 3.x] abaixo:
+ *  3.1 refresh() — lê os produtos e recalcula o dashboard.
+ *  3.2 handleInputChange() — categoria não perecível limpa a validade;
+ *      marcar "doação" limpa o custo.
+ *  3.3 validateForm() — nome, categoria, quantidade > 0, custo (se não for
+ *      doação), validade (se perecível).
+ *  3.4 handleSubmitProduct() — decide entre createProduct e updateProduct.
+ *  3.5 displayedProducts — o .filter().sort() de busca, filtros e ordenação.
+ *  3.6 Paginação — PAGE_SIZE = 6, visibleProducts e showMore() ("Ver mais").
+ *  3.7 Exclusão em duas etapas — requestDeleteProduct abre o ConfirmDialog.
+ *
+ * 🗣️ Fala sugerida: "Esse hook concentra todo o estado da tela de estoque: o
+ * formulário, os filtros e a paginação. Ele conversa com a camada de dados
+ * para criar, editar e excluir, e sempre dá um refresh pra tela refletir a
+ * mudança."
+ * ========================================================================== */
 import { useEffect, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import type { DashboardData, FieldErrors, FormData, Product } from "../types/product";
@@ -23,6 +44,7 @@ const EMPTY_ERRORS: FieldErrors = {
   minStock: "",
 };
 
+// [INT. 2 · PASSO 3.6] Tamanho da página da lista (botão "Ver mais").
 const PAGE_SIZE = 6;
 
 export function useProducts() {
@@ -52,12 +74,15 @@ export function useProducts() {
     setVisibleCount(PAGE_SIZE);
   }, [searchQuery, statusFilter, categoryFilter, sortOption]);
 
+  // [INT. 2 · PASSO 3.1] Relê os produtos e recalcula os indicadores do dashboard.
   function refresh() {
     const all = getProducts();
     setProducts(all);
     setDashboardData(calcDashboard(all));
   }
 
+  // [INT. 2 · PASSO 3.2] Formulário dinâmico: "doação" limpa o custo e
+  // categoria não perecível limpa a validade — aponte esses dois detalhes.
   function handleInputChange(event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     const { name, value } = event.target;
     if (event.target instanceof HTMLInputElement && event.target.type === "checkbox") {
@@ -75,6 +100,8 @@ export function useProducts() {
     }
   }
 
+  // [INT. 2 · PASSO 3.3] Validação: nome, categoria, quantidade > 0,
+  // custo (se não for doação) e validade (se a categoria for perecível).
   function validateForm(): FieldErrors {
     const errors: FieldErrors = { ...EMPTY_ERRORS };
     if (!formData.name.trim()) errors.name = "Nome é obrigatório";
@@ -91,6 +118,7 @@ export function useProducts() {
     return errors;
   }
 
+  // [INT. 2 · PASSO 3.4] Decide entre criar (createProduct) e editar (updateProduct).
   function handleSubmitProduct(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSubmitting(true);
@@ -148,7 +176,8 @@ export function useProducts() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  // Exclusão em duas etapas — abre o ConfirmDialog em vez do window.confirm nativo
+  // [INT. 2 · PASSO 3.7] Exclusão em duas etapas — abre o ConfirmDialog
+  // (componente do Integrante 8) em vez do window.confirm nativo.
   function requestDeleteProduct(id: number) {
     setPendingDeleteId(id);
   }
@@ -165,6 +194,7 @@ export function useProducts() {
     setPendingDeleteId(null);
   }
 
+  // [INT. 2 · PASSO 3.5] Busca + filtros + ordenação num único .filter().sort().
   const displayedProducts = products
     .filter((product) => {
       const matchesSearch =
@@ -190,6 +220,7 @@ export function useProducts() {
       return 0;
     });
 
+  // [INT. 2 · PASSO 3.6] Paginação: só mostra os primeiros N; "Ver mais" amplia.
   const visibleProducts = displayedProducts.slice(0, visibleCount);
   const hasMore = displayedProducts.length > visibleCount;
   const pendingDeleteProduct = products.find((p) => p.id === pendingDeleteId) ?? null;

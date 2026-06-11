@@ -1,3 +1,26 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · ARQUIVO COMPARTILHADO — storage.ts (a camada de dados)
+ * Este é o arquivo-estrela do INTEGRANTE 9, mas QUATRO integrantes falam aqui.
+ * Mapa de quem apresenta cada trecho (procure os marcadores [INT. x · PASSO y]):
+ *
+ *  · INTEGRANTE 9 — Infraestrutura (dono do arquivo):
+ *      PASSO 2: const KEYS — o "banco de dados" no localStorage.
+ *      PASSO 3: readRaw / writeRaw / nextId / createProduct — o padrão CRUD.
+ *      PASSO 4: SEED_VERSION / migrateSeedIfNeeded / PRODUCT_SEED /
+ *               TRANSACTION_SEED — dados de exemplo e migração.
+ *
+ *  · INTEGRANTE 5 — Histórico & Auditoria:
+ *      PASSO 2: logActivity / logLogin / logLogout / diffProduct /
+ *               getCurrentUser / ACTIVITY_CAP — o registro automático.
+ *
+ *  · INTEGRANTE 4 — Movimentação de Estoque:
+ *      PASSO 3: createMovement / adjustProductStock / deleteMovement —
+ *               o ajuste automático do estoque ("o pulo do gato").
+ *
+ *  · INTEGRANTE 7 — Gestão de Usuários:
+ *      PASSO 3: getUsers / updateUserRole / deleteUser — as regras na
+ *               camada de dados (admin protegido, senha nunca exposta).
+ * ========================================================================== */
 import type { Product } from "../types/product";
 import type { Transaction } from "../types/finance";
 import type { Activity, ActivityEntity, FieldChange } from "../types/activity";
@@ -8,8 +31,11 @@ import { enrich } from "./productUtils";
 type StoredProduct = Omit<Product, "status" | "daysToExpire" | "riskValue" | "lowStock">;
 type User = { email: string; password: string; role: UserRole; createdAt: string };
 
+// [INT. 9 · PASSO 4] Versão do seed: quando muda, os dados de exemplo são recarregados.
 const SEED_VERSION = "v7";
 
+// [INT. 9 · PASSO 2] O "banco de dados": cada tipo de dado tem sua chave no
+// localStorage. Mostre no DevTools (F12 → Application → Local Storage).
 const KEYS = {
   products: "ama_products",
   nextId: "ama_next_id",
@@ -23,7 +49,10 @@ const KEYS = {
   nextActivityId: "ama_next_activity_id",
 };
 
-// Re-seed when SEED_VERSION changes, preserving user accounts and history
+// [INT. 9 · PASSO 4] A "parte esperta": quando a SEED_VERSION muda, recarrega
+// os dados de exemplo PRESERVANDO as contas de usuário e o histórico.
+// 🗣️ "Se eu atualizo os dados de exemplo, o sistema recarrega só eles, sem
+// apagar os usuários nem o histórico que já existiam."
 function migrateSeedIfNeeded() {
   if (localStorage.getItem(KEYS.seedVersion) === SEED_VERSION) return;
   const users = localStorage.getItem(KEYS.users);
@@ -39,10 +68,13 @@ function migrateSeedIfNeeded() {
 migrateSeedIfNeeded();
 
 // ─── Activity Log (Histórico) ───────────────────────────────────────────────────
+// [INT. 5 · PASSO 2] Daqui até diffProduct é o coração do módulo de auditoria.
 
+// [INT. 5 · PASSO 2] Limite de 500 registros — cite na pergunta "o histórico
+// cresce para sempre?": não, os mais antigos são descartados.
 const ACTIVITY_CAP = 500; // mantém apenas os registros mais recentes
 
-// O "token" guardado no login é o próprio email do usuário
+// [INT. 5 · PASSO 2] O "quem fez": o token guardado no login é o próprio email.
 function getCurrentUser(): string {
   return localStorage.getItem("token") || "Sistema";
 }
@@ -69,6 +101,11 @@ type LogInput = {
   user?: string;
 };
 
+// [INT. 5 · PASSO 2] O PONTO-CHAVE da sua fala: esta função é chamada DE DENTRO
+// de cada operação do sistema (criar produto, transação, movimentação...).
+// Ninguém precisa lembrar de "anotar" — o registro é automático.
+// 🗣️ "O segredo é que o registro não depende da tela: ele acontece dentro da
+// própria camada de dados."
 export function logActivity(input: LogInput): void {
   const activity: Activity = {
     id: nextActivityId(),
@@ -83,6 +120,7 @@ export function logActivity(input: LogInput): void {
   localStorage.setItem(KEYS.activities, JSON.stringify(next));
 }
 
+// [INT. 5 · PASSO 2] Chamadas pelo login/logout do Integrante 1 (AuthContext).
 export function logLogin(email: string): void {
   logActivity({ action: "login", entity: "sessão", target: email, user: email });
 }
@@ -111,6 +149,8 @@ function fmtProductValue(field: keyof StoredProduct, value: unknown): string {
   return String(value);
 }
 
+// [INT. 5 · PASSO 2] Compara o produto antes e depois e gera a lista de
+// mudanças campo a campo (ex.: "Quantidade: 48 → 50") exibida no histórico.
 function diffProduct(prev: StoredProduct, next: StoredProduct): FieldChange[] {
   const fields: (keyof StoredProduct)[] = [
     "name", "category", "quantity", "unitCost", "expirationDate", "isDonation", "minStock",
@@ -130,6 +170,8 @@ function diffProduct(prev: StoredProduct, next: StoredProduct): FieldChange[] {
 }
 
 // ─── Product Seed ─────────────────────────────────────────────────────────────
+// [INT. 9 · PASSO 4] Os seeds: 47 produtos e 32 transações já preenchidos,
+// para o sistema nunca abrir vazio na demonstração.
 
 // Ponto de reposição padrão para os dados de exemplo: ~25% da quantidade inicial,
 // com piso de 6 unidades — assim itens com pouco estoque já aparecem como "estoque baixo".
@@ -246,6 +288,10 @@ const TRANSACTION_SEED: Transaction[] = [
 ];
 
 // ─── Products ─────────────────────────────────────────────────────────────────
+// [INT. 9 · PASSO 3] O padrão CRUD que se repete para cada entidade:
+// uma função para LER (readRaw), uma para GRAVAR (writeRaw) e um gerador de
+// IDs incrementais (nextId). Produtos, transações, movimentações e usuários
+// seguem todos este mesmo padrão.
 
 function readRaw(): StoredProduct[] {
   const raw = localStorage.getItem(KEYS.products);
@@ -272,6 +318,8 @@ export function getProducts(): Product[] {
   return readRaw().map(enrich);
 }
 
+// [INT. 9 · PASSO 3] Use createProduct como EXEMPLO do padrão: gera o ID,
+// grava e registra a atividade — por isso a auditoria funciona pra tudo.
 export function createProduct(data: Omit<StoredProduct, "id">): Product {
   const raw = readRaw();
   const product: StoredProduct = { id: nextId(), ...data };
@@ -343,6 +391,8 @@ export function deleteTransaction(id: number): void {
 }
 
 // ─── Stock Movements (Movimentação de estoque) ──────────────────────────────────
+// [INT. 4 · PASSO 3] "O pulo do gato" do seu módulo está nas três funções
+// abaixo: createMovement, adjustProductStock e deleteMovement (~2:00–3:00).
 
 // Algumas movimentações históricas de exemplo (registros — não recalculam o estoque do seed)
 const MOVEMENT_SEED: Omit<StockMovement, "user">[] = [
@@ -377,7 +427,8 @@ export function getMovements(): StockMovement[] {
   return readMovementsRaw().sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
 }
 
-// Ajusta a quantidade do produto: +qty para entrada, -qty (sem ficar negativo) para saída
+// [INT. 4 · PASSO 3] Ajusta a quantidade do produto: +qty para entrada,
+// -qty para saída — e o Math.max(0, …) garante que nunca fica negativo.
 function adjustProductStock(productId: number, delta: number): void {
   const raw = readRaw();
   writeRaw(
@@ -387,6 +438,9 @@ function adjustProductStock(productId: number, delta: number): void {
   );
 }
 
+// [INT. 4 · PASSO 3] Mostre que createMovement CHAMA adjustProductStock —
+// o módulo não só anota a movimentação, ele realmente altera o estoque.
+// 🗣️ "Entrada soma, saída subtrai."
 export function createMovement(
   data: Omit<StockMovement, "id" | "user" | "productName">,
 ): StockMovement {
@@ -407,6 +461,8 @@ export function createMovement(
   return movement;
 }
 
+// [INT. 4 · PASSO 3] Ao apagar uma movimentação, o efeito é REVERTIDO no
+// estoque: uma saída apagada devolve as unidades.
 export function deleteMovement(id: number): void {
   const movements = readMovementsRaw();
   const target = movements.find((m) => m.id === id);
@@ -482,7 +538,8 @@ export function loginUser(email: string, password: string): boolean {
   return readUsers().some((u) => u.email === email && u.password === password);
 }
 
-// Lista de usuários para a interface (sem expor a senha)
+// [INT. 7 · PASSO 3] Destaque: getUsers devolve os usuários SEM a senha —
+// só e-mail, papel e data de criação. 🗣️ "Eu nunca exponho a senha."
 export function getUsers(): AppUser[] {
   return readUsers()
     .map(({ email, role, createdAt }) => ({ email, role, createdAt }))
@@ -493,6 +550,8 @@ export function getUserRole(email: string): UserRole {
   return readUsers().find((u) => u.email === email)?.role ?? "voluntario";
 }
 
+// [INT. 7 · PASSO 3] As regras na camada de dados: recusa mexer no admin
+// padrão e registra toda mudança de papel no Histórico (Integrante 5).
 export function updateUserRole(email: string, role: UserRole): void {
   if (email === DEFAULT_ADMIN.email) return; // o admin padrão não pode ser rebaixado
   const users = readUsers();
@@ -507,6 +566,7 @@ export function updateUserRole(email: string, role: UserRole): void {
   });
 }
 
+// [INT. 7 · PASSO 3] Mesma proteção na exclusão: o admin padrão é permanente.
 export function deleteUser(email: string): void {
   if (email === DEFAULT_ADMIN.email) return; // o admin padrão é permanente
   const users = readUsers();

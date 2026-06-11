@@ -1,3 +1,13 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · INTEGRANTE 8 — Design System & Componentes-base
+ * PASSO 5 do roteiro: "O padrão de cores"
+ *
+ * O que falar: a paleta — azul (--color-ama-blue / blue-700) como cor
+ * principal, âmbar (--color-ama-yellow / amber-400) como destaque, e as
+ * cores de status (vermelho/laranja/âmbar/verde) que se repetem em todas as
+ * telas. Cite que o estilo é feito com Tailwind e que esta base visual dá
+ * unidade ao sistema inteiro.
+ * ========================================================================== */
 @import "tailwindcss";
 
 @theme {

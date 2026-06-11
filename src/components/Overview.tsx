@@ -1,3 +1,16 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · INTEGRANTE 6 — Relatórios, Exportação & Dashboard
+ * PASSO 2 do roteiro: "A visão geral consolidada" (~0:40–1:30)
+ * Mostre na primeira aba do sistema.
+ *
+ * O que falar: esta tela CRUZA vários módulos numa só — resumo do estoque
+ * (Int. 2), do financeiro (Int. 3) e das atividades recentes (Int. 5).
+ * Aponte o `onNavigate` — os atalhos que levam direto à aba correspondente.
+ *
+ * 🗣️ Fala sugerida: "A Visão Geral é a tela de abertura. Ela junta o que está
+ * espalhado pelo sistema — estoque, finanças e últimas atividades — pra dar
+ * um panorama rápido, com atalhos pra cada área."
+ * ========================================================================== */
 import { motion, type Variants } from "framer-motion";
 import {
   AlertTriangle,

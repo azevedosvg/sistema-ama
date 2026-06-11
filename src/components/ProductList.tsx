@@ -1,3 +1,8 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · INTEGRANTE 2 — Módulo de Produtos (Estoque) · PASSO 4
+ * A lista que renderiza os ProductCard, com o botão "Ver mais" (paginação)
+ * e o estado vazio quando nenhum produto bate com os filtros.
+ * ========================================================================== */
 import { motion } from "framer-motion";
 import { ChevronDown, PackageSearch } from "lucide-react";
 import type { Product } from "../types/product";

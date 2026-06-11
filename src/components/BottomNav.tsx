@@ -1,3 +1,13 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · INTEGRANTE 8 — Design System & Componentes-base
+ * PASSO 4 do roteiro: "Identidade visual e navegação" (~2:30–3:20)
+ *
+ * Demonstração: ENCOLHA a janela do navegador ao vivo para revelar esta
+ * barra de navegação inferior — no celular, as abas do header viram isto.
+ *
+ * 🗣️ Fala sugerida: "No celular, as abas viram essa barra inferior. São
+ * detalhes que dão acabamento profissional ao sistema."
+ * ========================================================================== */
 import { motion } from "framer-motion";
 import type { HomeTab } from "../pages/Home";
 

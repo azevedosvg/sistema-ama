@@ -1,3 +1,16 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · INTEGRANTE 5 — Histórico & Auditoria
+ * PASSO 4 do roteiro: "A linha do tempo" (~3:20–4:00) · MOSTRE NO NAVEGADOR
+ *
+ * O que mostrar: a linha do tempo agrupada por dia (Hoje / Ontem / data),
+ * com ícone e cor por tipo de ação, e as edições exibindo "de → para".
+ *
+ * Demonstração: edite um produto na aba Estoque e volte aqui para mostrar a
+ * entrada nova com o "de → para".
+ *
+ * 🗣️ Fala sugerida: "Na tela, agrupei tudo por dia, com um ícone e uma cor pra
+ * cada tipo de ação, pra facilitar a leitura."
+ * ========================================================================== */
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowRight,

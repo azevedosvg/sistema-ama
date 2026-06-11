@@ -1,3 +1,15 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · INTEGRANTE 2 — Módulo de Produtos (Estoque)
+ * PASSO 4 do roteiro: "A interface" (~4:00–5:00) · DEMONSTRE NO NAVEGADOR
+ *
+ * Demonstração ao vivo: cadastre um produto, edite-o e use a busca/filtros.
+ * Mostre que o campo de validade SOME ao escolher "Roupas" (não perecível)
+ * e o campo de custo some ao marcar "Doação".
+ *
+ * 🗣️ Fala sugerida: "O formulário é dinâmico: ele esconde campos que não fazem
+ * sentido — não pedimos validade para uma roupa, nem custo para uma doação.
+ * Cada produto vira um card com a cor do seu status."
+ * ========================================================================== */
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle2, Gift, XCircle } from "lucide-react";
 import type { ChangeEvent, FormEvent } from "react";

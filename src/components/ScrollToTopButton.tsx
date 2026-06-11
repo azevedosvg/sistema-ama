@@ -1,3 +1,8 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · INTEGRANTE 8 — Design System & Componentes-base
+ * PASSO 4 do roteiro: o botão de "voltar ao topo" — cite-o rapidamente como
+ * mais um detalhe de acabamento.
+ * ========================================================================== */
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUp } from "lucide-react";
 import { useEffect, useState } from "react";

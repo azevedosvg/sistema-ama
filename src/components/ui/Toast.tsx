@@ -1,3 +1,15 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · INTEGRANTE 8 — Design System & Componentes-base
+ * PASSO 1 do roteiro: "O sistema de avisos (Toast)" (~0:40–1:40)
+ *
+ * O que falar: o ToastProvider envolve TODA a aplicação (veja App.tsx) e
+ * qualquer módulo chama useToast() para exibir uma notificação
+ * (ex.: "Produto excluído"). É um recurso central, usado por vários colegas.
+ *
+ * 🗣️ Fala sugerida: "Esse é um bom exemplo do meu papel: eu criei um sistema
+ * de avisos global. Em vez de cada tela inventar o seu, qualquer parte do
+ * sistema chama useToast e o aviso aparece padronizado."
+ * ========================================================================== */
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle2, Info, X, XCircle } from "lucide-react";
 import { createContext, useCallback, useContext, useRef, useState } from "react";

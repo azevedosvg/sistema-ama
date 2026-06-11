@@ -1,3 +1,22 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · INTEGRANTE 1 — Autenticação & Controle de Acesso
+ * PASSO 4 do roteiro: "A tela de login" (~3:15–4:00) · mostre também no navegador
+ *
+ * O que falar neste arquivo:
+ *  1. A função handleSubmit: chama loginUser(email, senha) para validar e,
+ *     se der certo, chama o login(email) do contexto e navega para "/".
+ *  2. No navegador: o botão de mostrar/ocultar senha (estado showPassword,
+ *     ícones Eye/EyeOff) e a mensagem de erro quando a senha está errada.
+ *  3. Comente que Register.tsx segue o mesmo padrão, chamando registerUser.
+ *  4. Encerre fazendo um login AO VIVO: admin@ama.org / admin123.
+ *
+ * 🗣️ Fala sugerida: "Quando o usuário envia o formulário, eu valido o email e
+ * a senha. Se bater, salvo a sessão pelo contexto e mando pra home. Se não
+ * bater, mostro o aviso de erro. Coloquei também o botão de olho pra revelar
+ * a senha, melhorando a usabilidade."
+ *
+ * (O componente <Logo> usado aqui é do Integrante 8 — design system.)
+ * ========================================================================== */
 import { motion } from "framer-motion";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
@@ -15,6 +34,7 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // [INT. 1 · PASSO 4.1] Valida as credenciais; se ok, salva a sessão e vai pra home.
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
@@ -115,6 +135,7 @@ export default function Login() {
                       required
                       className="w-full px-4 py-2.5 pr-11 rounded-xl border border-blue-100 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-sm transition-all hover:border-blue-300"
                     />
+                    {/* [INT. 1 · PASSO 4.2] Botão de olho: mostrar/ocultar a senha. */}
                     <button
                       type="button"
                       onClick={() => setShowPassword((v) => !v)}

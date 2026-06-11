@@ -1,3 +1,17 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · INTEGRANTE 6 — Relatórios, Exportação & Dashboard
+ * PASSO 1 do roteiro: "Os indicadores do estoque" (~0:40–1:30)
+ * Mostre no topo da aba Estoque.
+ *
+ * O que falar: os cards — total de produtos, vencidos, críticos, em atenção,
+ * seguros e o valor total em risco. Os números vêm PRONTOS da função
+ * calcDashboard (módulo de Produtos, Integrante 2) — o Dashboard só os
+ * exibe de forma visual.
+ *
+ * 🗣️ Fala sugerida: "Esses cards dão um raio-x do estoque num relance. Eu
+ * recebo os números já calculados e cuido de apresentá-los com cor e
+ * destaque, com o card principal em azul."
+ * ========================================================================== */
 import { motion, type Variants } from "framer-motion";
 import { AlertTriangle, CheckCircle2, Clock, Package, PackageMinus, ShieldAlert, TrendingDown } from "lucide-react";
 import type { DashboardData } from "../types/product";

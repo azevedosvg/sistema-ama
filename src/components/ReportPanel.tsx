@@ -1,3 +1,11 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · INTEGRANTE 6 — Relatórios, Exportação & Dashboard
+ * PASSO 4 do roteiro: "O painel de relatórios" (~3:00–4:00) · DEMONSTRE AO VIVO
+ *
+ * O que mostrar: os relatórios disponíveis (estoque, financeiro,
+ * movimentações) e os botões de exportar. Na demo: baixe um CSV e abra no
+ * Excel; depois clique no PDF e mostre a janela de impressão.
+ * ========================================================================== */
 import { motion } from "framer-motion";
 import { Boxes, Download, FileText, Printer, Wallet } from "lucide-react";
 import { useMemo } from "react";

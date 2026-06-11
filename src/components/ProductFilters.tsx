@@ -1,3 +1,8 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · INTEGRANTE 2 — Módulo de Produtos (Estoque) · PASSO 4
+ * Barra de busca + filtros (status, categoria) + ordenação.
+ * Na demo: digite uma busca e troque os filtros para a lista reagir ao vivo.
+ * ========================================================================== */
 import { motion } from "framer-motion";
 import { Search, SlidersHorizontal, X } from "lucide-react";
 import { CATEGORIES } from "./ProductForm";

@@ -1,3 +1,16 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · INTEGRANTE 8 — Design System & Componentes-base
+ * PASSO 2 do roteiro: "O diálogo de confirmação" (~0:40–1:40)
+ *
+ * O que falar: ele recebe open, title, message, onConfirm e onCancel —
+ * é GENÉRICO, serve para qualquer confirmação do sistema. Substitui o
+ * window.confirm nativo por um modal bonito e consistente; é ele que aparece
+ * na exclusão de produto (Integrante 2).
+ *
+ * 🗣️ Fala sugerida: "Quando você exclui um produto, aquele modal de 'tem
+ * certeza?' é meu. Eu o fiz genérico: recebe título, mensagem e o que fazer
+ * ao confirmar, então serve pra qualquer confirmação do sistema."
+ * ========================================================================== */
 import { AlertTriangle } from "lucide-react";
 import { motion } from "framer-motion";
 import Modal from "./Modal";

@@ -1,3 +1,9 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · INTEGRANTE 8 — Design System & Componentes-base
+ * PASSO 4 do roteiro: "Identidade visual e navegação" (~2:30–3:20)
+ * O logo oficial da AMA — aparece no login (Integrante 1) e no header.
+ * 🗣️ "Cuidei também da identidade: o logo da AMA e a navegação."
+ * ========================================================================== */
 type Props = {
   /** Tamanho do quadrado da logo (px) */
   size?: number;

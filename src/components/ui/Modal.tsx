@@ -1,3 +1,10 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · INTEGRANTE 8 — Design System & Componentes-base
+ * PASSO 3 do roteiro: "Modal e estado vazio" (~1:40–2:30)
+ *
+ * O que falar: este é o Modal base — a "janela" reutilizável sobre a qual o
+ * ConfirmDialog é construído. Mostre junto com o EmptyState.
+ * ========================================================================== */
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { useEffect } from "react";

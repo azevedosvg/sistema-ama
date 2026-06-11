@@ -1,3 +1,18 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · INTEGRANTE 3 — Módulo Financeiro
+ * PASSO 4 do roteiro: "Os gráficos em SVG" (~3:20–4:00) · MOSTRE NO NAVEGADOR
+ *
+ * O que falar: o card de saldo (azul se positivo, vermelho se negativo),
+ * o gráfico de BARRAS (fluxo mensal) e o de PIZZA/donut (despesas por
+ * categoria). Os gráficos são desenhados com SVG na mão — as barras são
+ * retângulos e a pizza usa arcos calculados, sem biblioteca pronta.
+ *
+ * Demonstração: lance uma despesa e mostre o saldo e o gráfico mudando.
+ *
+ * 🗣️ Fala sugerida: "Os gráficos não usam imagem nem dependem de biblioteca
+ * pesada — são SVG montados a partir dos números do resumo. A pizza, por
+ * exemplo, é feita com arcos calculados pela proporção de cada categoria."
+ * ========================================================================== */
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowDownCircle, ArrowUpCircle, Gift, Info, Plus, Trash2, TrendingDown, Wallet, X } from "lucide-react";
 import type { ChangeEvent, FormEvent } from "react";

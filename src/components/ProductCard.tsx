@@ -1,3 +1,9 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · INTEGRANTE 2 — Módulo de Produtos (Estoque) · PASSO 4
+ * Cada produto vira um card com a COR do seu status (faixa no topo):
+ * vermelho = vencido, laranja = crítico, âmbar = atenção, verde = seguro.
+ * Aponte o STATUS_CONFIG abaixo como o "mapa" dessas cores.
+ * ========================================================================== */
 import { motion, type Variants } from "framer-motion";
 import { AlertTriangle, CalendarDays, Gift, Package, Pencil, Tag, Trash2, TrendingDown } from "lucide-react";
 import type { Product } from "../types/product";

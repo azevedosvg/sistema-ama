@@ -1,3 +1,22 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · INTEGRANTE 6 — Relatórios, Exportação & Dashboard
+ * PASSO 3 do roteiro: "O motor de exportação" (~1:30–3:00)
+ * >>> Este é o código mais interessante de explicar na sua fala. <<<
+ *
+ * O que apontar, nesta ordem:
+ *  1. toCSV / downloadCSV — montam o CSV e disparam o download via Blob + link.
+ *  2. Detalhe fino: separador ";" e BOM no início, para o Excel em português
+ *     abrir com acentos e colunas corretas.
+ *  3. escapeCSV — protege campos com aspas, ponto e vírgula ou quebra de linha.
+ *  4. printReport — abre uma janela formatada e chama window.print(); o
+ *     usuário salva como PDF (sem biblioteca).
+ *  5. formatBRL / formatDateBR — dinheiro e datas no padrão brasileiro.
+ *
+ * 🗣️ Fala sugerida: "A exportação foi a parte que mais me exigiu atenção a
+ * detalhe. Pra o CSV abrir certinho no Excel em português, usei ponto e
+ * vírgula como separador e um marcador BOM pra garantir os acentos. E o PDF
+ * eu gero reaproveitando a impressão do próprio navegador."
+ * ========================================================================== */
 // Utilitários de exportação — geração de CSV e impressão (PDF via diálogo do navegador)
 
 export function formatBRL(value: number): string {
@@ -9,14 +28,14 @@ export function formatDateBR(iso: string): string {
   return new Intl.DateTimeFormat("pt-BR").format(new Date(iso + "T00:00:00"));
 }
 
-// Escapa um campo para CSV (aspas duplas e separadores)
+// [INT. 6 · PASSO 3.3] Escapa um campo para CSV (aspas duplas e separadores)
 function escapeCSV(value: string | number): string {
   const s = String(value);
   if (/[";\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
   return s;
 }
 
-// Gera o conteúdo CSV a partir de cabeçalho + linhas (separador ";" para compatibilidade com Excel pt-BR)
+// [INT. 6 · PASSOS 3.1 e 3.2] Gera o CSV — aponte o ";" e o BOM na linha de baixo.
 export function toCSV(headers: string[], rows: (string | number)[][]): string {
   const lines = [headers, ...rows].map((row) => row.map(escapeCSV).join(";"));
   // BOM garante acentuação correta ao abrir no Excel
@@ -37,7 +56,7 @@ export function downloadCSV(filename: string, headers: string[], rows: (string |
   URL.revokeObjectURL(url);
 }
 
-// Abre uma janela de impressão com o HTML fornecido (o usuário pode salvar como PDF)
+// [INT. 6 · PASSO 3.4] PDF sem biblioteca: janela formatada + window.print().
 export function printReport(title: string, bodyHTML: string): void {
   const win = window.open("", "_blank", "width=900,height=650");
   if (!win) return;

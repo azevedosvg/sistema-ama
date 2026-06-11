@@ -1,3 +1,18 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · ARQUIVO COMPARTILHADO — Home.tsx (a página principal)
+ *
+ * Quem fala o quê aqui:
+ *  · INTEGRANTE 7 (PASSO 1, ~0:40–1:30): o controle de acesso à aba de
+ *    usuários — a marca `adminOnly: true` em TABS, o filtro `visibleTabs`
+ *    e a checagem dupla `activeTab === "usuarios" && isAdmin` lá embaixo.
+ *  · INTEGRANTE 1 (citação): o botão "Sair" (handleLogout) e o selo de papel
+ *    no header usam o useAuth() — exemplo do contexto em ação.
+ *  · INTEGRANTE 8 (citação): BottomNav (navegação mobile), ConfirmDialog,
+ *    useToast, LogoMark, Footer e ScrollToTopButton são os componentes-base
+ *    do design system aparecendo juntos nesta página.
+ *  · INTEGRANTES 2/3/5/6 (citação): a Home chama useProducts()/useFinance()
+ *    e distribui os dados para as telas de cada módulo.
+ * ========================================================================== */
 import { motion } from "framer-motion";
 import {
   ArrowLeftRight,
@@ -53,6 +68,7 @@ const TABS: TabDef[] = [
   { id: "financeiro", label: "Financeiro", icon: Wallet },
   { id: "relatorios", label: "Relatórios", icon: FileBarChart },
   { id: "historico", label: "Histórico", icon: History },
+  // [INT. 7 · PASSO 1] A marca adminOnly: só administradores veem esta aba.
   { id: "usuarios", label: "Usuários", icon: Users, adminOnly: true },
 ];
 
@@ -103,6 +119,7 @@ export default function Home() {
     pendingDeleteProduct,
   } = useProducts();
 
+  // [INT. 7 · PASSO 1] 1ª camada de proteção: filtra as abas conforme isAdmin.
   const visibleTabs = TABS.filter((t) => !t.adminOnly || isAdmin);
 
   function handleLogout() {
@@ -338,6 +355,8 @@ export default function Home() {
           </motion.div>
         )}
 
+        {/* [INT. 7 · PASSO 1] 2ª camada de proteção: mesmo que alguém force a
+            aba, a tela revalida isAdmin antes de renderizar — proteção dupla. */}
         {activeTab === "usuarios" && isAdmin && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}

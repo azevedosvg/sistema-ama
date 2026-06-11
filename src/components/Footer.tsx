@@ -1,3 +1,8 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · INTEGRANTE 8 — Design System & Componentes-base
+ * PASSO 4 do roteiro: o rodapé institucional — cite-o rapidamente junto com
+ * o logo e a navegação.
+ * ========================================================================== */
 import { Heart, Package } from "lucide-react";
 import LogoMark from "./LogoMark";
 

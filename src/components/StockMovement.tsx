@@ -1,3 +1,14 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · INTEGRANTE 4 — Movimentação de Estoque
+ * PASSO 4 do roteiro: "A tela" (~3:00–4:00) · DEMONSTRE NO NAVEGADOR
+ *
+ * O que mostrar: o formulário (escolher produto, tipo, quantidade, motivo)
+ * e a lista de movimentações com busca e filtro por tipo.
+ *
+ * Demonstração marcante: anote a quantidade de um produto na aba Estoque,
+ * registre uma SAÍDA dele aqui e volte para mostrar que a quantidade
+ * diminuiu sozinha — esse é o "pulo do gato" do seu módulo.
+ * ========================================================================== */
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowDownCircle,

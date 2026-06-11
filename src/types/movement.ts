@@ -1,3 +1,16 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · INTEGRANTE 4 — Movimentação de Estoque
+ * PASSO 1 do roteiro: "O que é uma movimentação" (~0:40–1:20)
+ *
+ * O que falar: mostre MovementType = "entrada" | "saida" e o tipo
+ * StockMovement (produto, quantidade, motivo, parte envolvida, data, usuário).
+ * Mostre também MOVEMENT_REASONS (motivos por tipo) e PARTY_LABELS (o rótulo
+ * muda: "Doador/Fornecedor" na entrada, "Beneficiário/Destino" na saída).
+ *
+ * 🗣️ Fala sugerida: "Uma movimentação é uma entrada ou uma saída de um
+ * produto. Ela guarda o motivo, quem estava envolvido — um doador ou um
+ * beneficiário — e quem registrou."
+ * ========================================================================== */
 export type MovementType = "entrada" | "saida";
 
 // Movimentação de estoque: entrada (reposição/recebimento) ou saída (distribuição/baixa)

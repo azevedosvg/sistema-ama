@@ -1,3 +1,10 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · INTEGRANTE 8 — Design System & Componentes-base
+ * PASSO 3 do roteiro: "Modal e estado vazio" (~1:40–2:30)
+ *
+ * O que falar: o EmptyState é a mensagem amigável de "nada por aqui" quando
+ * uma lista está vazia — usado pelas listas de produtos, movimentações etc.
+ * ========================================================================== */
 import { motion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 

@@ -1,3 +1,9 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · INTEGRANTE 5 — Histórico & Auditoria
+ * Complemento do PASSO 4: o sino de notificações no topo da página.
+ * Mostre no navegador que o sino destaca as novidades/alertas recentes.
+ * 🗣️ "E o sino avisa quando há atividade recente."
+ * ========================================================================== */
 import { AnimatePresence, motion } from "framer-motion";
 import { AlertTriangle, Bell, ChevronRight, Clock, PackageMinus } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";

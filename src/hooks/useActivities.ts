@@ -1,3 +1,14 @@
+/* ============================================================================
+ * 🎤 APRESENTAÇÃO · INTEGRANTE 5 — Histórico & Auditoria
+ * PASSO 3 do roteiro: "A leitura e os filtros" (~2:40–3:20)
+ *
+ * O que falar: o hook lê os registros já ordenados (mais recentes primeiro)
+ * e oferece TRÊS filtros: por texto, por tipo de ação e por usuário.
+ * A lista `users` é montada a partir dos próprios registros.
+ *
+ * (O PASSO 2 — registro automático com logActivity e diffProduct — fica em
+ * src/lib/storage.ts.)
+ * ========================================================================== */
 import { useMemo, useState } from "react";
 import type { Activity, ActivityAction } from "../types/activity";
 import { getActivities } from "../lib/storage";
@@ -17,11 +28,13 @@ export function useActivities() {
     setActivities(getActivities());
   }
 
+  // [INT. 5 · PASSO 3] A lista de usuários do filtro nasce dos próprios registros.
   const users = useMemo(
     () => Array.from(new Set(activities.map((a) => a.user))).sort(),
     [activities],
   );
 
+  // [INT. 5 · PASSO 3] Os três filtros combinados: texto + tipo de ação + usuário.
   const displayed = useMemo(() => {
     const q = norm(search.trim());
     return activities.filter((a) => {
