@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Demonstração · Integrante 1 — Autenticação &amp; Controle de Acesso</title>
+<style>
+  :root{--blue:#1d4ed8;--blue-dark:#1e3a8a;--amber:#fbbf24;--ink:#1f2937;--muted:#6b7280;--line:#e5e7eb;--bg:#f1f5f9;--card:#fff}
+  *{box-sizing:border-box}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--ink);background:var(--bg);margin:0;line-height:1.65}
+  .wrap{max-width:880px;margin:0 auto;padding:0 24px 80px}
+  .hero{background:linear-gradient(135deg,#1e3a8a,#1d4ed8 60%,#2563eb);color:#fff;padding:44px 24px 52px;position:relative;overflow:hidden}
+  .hero::after{content:"";position:absolute;right:-70px;top:-70px;width:240px;height:240px;border-radius:50%;background:rgba(251,191,36,.18)}
+  .hero-inner{max-width:880px;margin:0 auto;position:relative;z-index:2}
+  .badge{display:inline-flex;align-items:center;gap:10px;background:rgba(255,255,255,.12);padding:7px 14px;border-radius:999px;font-weight:700;font-size:13px;letter-spacing:.04em}
+  .mark{width:30px;height:30px;border-radius:8px;background:var(--amber);color:var(--blue-dark);display:grid;place-items:center;font-weight:800}
+  .hero h1{font-size:30px;margin:18px 0 4px;letter-spacing:-.02em}
+  .hero .sub{color:#dbeafe;font-size:16px}
+  .hero .accent{width:56px;height:4px;background:var(--amber);border-radius:999px;margin:14px 0 0}
+  .card{background:var(--card);border:1px solid #e3e8f2;border-radius:16px;padding:22px 24px;margin:18px 0;box-shadow:0 2px 10px rgba(30,58,138,.05)}
+  h2.sec{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--blue);margin:36px 0 2px;display:flex;align-items:center;gap:10px}
+  h2.sec .step-n{background:var(--blue);color:#fff;width:24px;height:24px;border-radius:7px;display:grid;place-items:center;font-size:13px}
+  .sec-sub{color:var(--muted);font-size:14px;margin:6px 0 14px}
+  .oneliner{font-size:17px;font-weight:600;color:var(--blue-dark);background:#eff6ff;border-left:4px solid var(--amber);padding:14px 18px;border-radius:0 12px 12px 0;margin:18px 0}
+  .files{display:flex;flex-wrap:wrap;gap:7px;margin-top:6px}
+  .file{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;background:#eef2ff;border:1px solid #dbe2f5;color:#1e3a8a;padding:4px 9px;border-radius:7px}
+  .step{display:flex;gap:14px;padding:15px 0;border-bottom:1px solid var(--line)}
+  .step:last-child{border-bottom:0}
+  .step .n{flex:none;width:30px;height:30px;border-radius:9px;background:var(--blue);color:#fff;font-weight:700;display:grid;place-items:center;font-size:14px}
+  .step h4{margin:0 0 4px;font-size:15px}
+  .step p{margin:5px 0;font-size:14px;color:#374151}
+  .say{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px 13px;font-size:13.5px;color:#78350f;margin-top:8px}
+  .say::before{content:"🗣️ Para falar: ";font-weight:700}
+  code{font-family:ui-monospace,Consolas,monospace;font-size:.9em;background:#eef2ff;color:#1e3a8a;padding:1px 5px;border-radius:5px}
+  ul.clean{margin:6px 0;padding-left:20px;font-size:14px}
+  ul.clean li{margin:4px 0}
+  .time{display:inline-block;background:var(--amber);color:#78350f;font-weight:700;font-size:11px;padding:3px 10px;border-radius:999px;text-transform:none;letter-spacing:0}
+  /* ── Code "print" (editor look) ── */
+  .snippet{margin:16px 0 22px}
+  .snippet .cap{font-size:13.5px;color:#374151;background:#ecfdf5;border:1px solid #a7f3d0;border-left:4px solid #10b981;border-radius:0 10px 10px 0;padding:10px 14px;margin-bottom:0}
+  .snippet .cap strong{color:#065f46}
+  .code{background:#0d1117;border-radius:0 0 12px 12px;overflow:hidden;box-shadow:0 8px 24px rgba(2,6,23,.25);border:1px solid #1f2733;border-top:0}
+  .code .bar{display:flex;align-items:center;gap:10px;background:#161b22;padding:9px 14px;border-bottom:1px solid #21262d}
+  .code .dots{display:flex;gap:6px}
+  .code .dots i{width:11px;height:11px;border-radius:50%;display:inline-block}
+  .code .dots i:nth-child(1){background:#ff5f56}.code .dots i:nth-child(2){background:#ffbd2e}.code .dots i:nth-child(3){background:#27c93f}
+  .code .fname{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;color:#8b949e}
+  .code pre{margin:0;padding:14px 0;overflow-x:auto;counter-reset:ln}
+  .code code{background:none;color:#c9d1d9;font-family:ui-monospace,"SF Mono",Consolas,monospace;font-size:12.5px;line-height:1.6;padding:0;display:block}
+  .code .line{display:block;white-space:pre;padding:0 16px 0 0}
+  .code .line::before{counter-increment:ln;content:counter(ln);display:inline-block;width:34px;margin-right:16px;padding-right:8px;text-align:right;color:#4b5563;border-right:1px solid #21262d;user-select:none}
+  .code .cm{color:#6a9955;font-style:italic}
+  .code .kw{color:#c586c0}
+  .code .st{color:#ce9178}
+  .code .nu{color:#b5cea8}
+  .nav{display:flex;justify-content:space-between;margin-top:34px;font-size:13px}
+  .nav a{color:var(--blue);text-decoration:none}.nav a:hover{text-decoration:underline}
+  footer{text-align:center;color:var(--muted);font-size:12.5px;margin-top:30px;padding-top:20px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <span class="badge"><span class="mark">1</span> AMA · Demonstração ao vivo</span>
+      <h1>Autenticação &amp; Controle de Acesso</h1>
+      <div class="sub">Integrante 1 — a porta de entrada do sistema: login, cadastro e proteção de rotas</div>
+      <div class="accent"></div>
+    </div>
+  </header>
+
+  <div class="wrap">
+
+    <h2 class="sec"><span class="step-n">1</span> Deixe o sistema pronto</h2>
+    <div class="card">
+      <ul class="clean">
+        <li>No terminal do projeto: <code>npm run dev</code> e abra <code>http://localhost:5173</code>.</li>
+        <li>Como a sua parte é a entrada, o sistema já abre direto na <strong>tela de login</strong> — perfeito para começar.</li>
+        <li>Credenciais de demonstração: <code>admin@ama.org</code> / <code>admin123</code>.</li>
+      </ul>
+    </div>
+
+    <div class="oneliner">
+      "Eu cuidei de tudo que envolve <strong>entrar no sistema</strong>: as telas de login e cadastro,
+      manter o usuário logado e impedir que alguém sem login acesse o sistema."
+    </div>
+
+    <h2 class="sec"><span class="step-n">2</span> O que mostrar funcionando <span class="time">demonstre no navegador</span></h2>
+    <p class="sec-sub">Aqui é só clicar e narrar o comportamento — não precisa abrir o código.</p>
+    <div class="card">
+      <div class="step">
+        <div class="n">1</div>
+        <div>
+          <h4>Erro de credencial</h4>
+          <p>Digite uma senha errada e clique em <strong>Entrar</strong>. Aparece o aviso vermelho "Email ou senha incorretos".</p>
+          <div class="say">"Se as credenciais não batem, o sistema avisa e não deixa entrar."</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="n">2</div>
+        <div>
+          <h4>Mostrar / ocultar senha</h4>
+          <p>Clique no ícone de <strong>olho</strong> dentro do campo de senha — ele alterna entre esconder e revelar o que foi digitado.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="n">3</div>
+        <div>
+          <h4>Login com sucesso</h4>
+          <p>Entre com <code>admin@ama.org</code> / <code>admin123</code>. O sistema leva direto para a página principal.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="n">4</div>
+        <div>
+          <h4>A sessão sobrevive ao F5</h4>
+          <p>Já logado, aperte <strong>F5</strong>. Você continua dentro — a sessão fica salva no navegador.</p>
+          <div class="say">"O login fica guardado, então atualizar a página não desconecta o usuário."</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="n">5</div>
+        <div>
+          <h4>Proteção de rota e logout</h4>
+          <p>Clique em <strong>Sair</strong>: volta para o login. Agora tente abrir <code>localhost:5173/</code> direto — o sistema te joga de volta para a tela de login, porque você não está autenticado.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="n">6</div>
+        <div>
+          <h4>Cadastro de novo usuário</h4>
+          <p>Na tela de login, clique em <strong>Cadastrar</strong>, crie uma conta nova e mostre que já é possível entrar com ela.</p>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="sec"><span class="step-n">3</span> Prints do código (apoio)</h2>
+    <p class="sec-sub">Mostre cada print rapidamente e leia só a legenda — o que aquele trecho faz.</p>
+
+    <div class="snippet">
+      <div class="cap">📄 <strong>O que faz:</strong> define as rotas do app. A rota principal <code>/</code> está "embrulhada" pelo <code>PrivateRoute</code>, que é o que a protege de acessos sem login.</div>
+      <script type="text/plain" class="src" data-file="src/App.tsx">
+export default function App() {
+  return (
+    <BrowserRouter>
+      <ToastProvider>
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            {/* Rota raiz protegida: só passa quem está logado */}
+            <Route path="/" element={
+              <PrivateRoute>
+                <Home />
+              </PrivateRoute>
+            } />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </AuthProvider>
+      </ToastProvider>
+    </BrowserRouter>
+  );
+}
+      </script>
+    </div>
+
+    <div class="snippet">
+      <div class="cap">📄 <strong>O que faz:</strong> guarda quem está logado. O login é lido do navegador (por isso sobrevive ao F5), e <code>login()</code> / <code>logout()</code> entram e saem da sessão.</div>
+      <script type="text/plain" class="src" data-file="src/contexts/AuthContext.tsx">
+export function AuthProvider({ children }) {
+  // Token inicial vem do localStorage -> a sessão sobrevive ao F5
+  const [token, setToken] = useState(localStorage.getItem("token"));
+
+  // Papel do usuário (admin / voluntário) derivado do token
+  const role = token ? getUserRole(token) : null;
+
+  function login(newToken) {
+    localStorage.setItem("token", newToken);
+    setToken(newToken);
+    logLogin(newToken); // registra a entrada no Histórico
+  }
+
+  function logout() {
+    const current = localStorage.getItem("token");
+    if (current) logLogout(current);
+    localStorage.removeItem("token");
+    setToken(null);
+  }
+
+  return (
+    <AuthContext.Provider
+      value={{ token, role, isAdmin: role === "admin", login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+}
+      </script>
+    </div>
+
+    <div class="snippet">
+      <div class="cap">📄 <strong>O que faz:</strong> é o "porteiro". Se existe login, mostra a página; se não, redireciona para a tela de login.</div>
+      <script type="text/plain" class="src" data-file="src/components/PrivateRoute.tsx">
+export default function PrivateRoute({ children }) {
+  const { token } = useAuth();
+  return token ? <>{children}</> : <Navigate to="/login" replace />;
+}
+      </script>
+    </div>
+
+    <div class="snippet">
+      <div class="cap">📄 <strong>O que faz:</strong> ao enviar o formulário, valida o email e a senha; se bater, salva a sessão e vai para a home; se não, mostra o erro.</div>
+      <script type="text/plain" class="src" data-file="src/pages/Login.tsx">
+function handleSubmit(e) {
+  e.preventDefault();
+  setError("");
+  if (loginUser(email, password)) {
+    login(email);        // salva a sessão (contexto)
+    navigate("/");       // vai para a página principal
+  } else {
+    setError("Email ou senha incorretos.");
+  }
+}
+      </script>
+    </div>
+
+    <h2 class="sec"><span class="step-n">4</span> Resumo do que eu fiz</h2>
+    <div class="card">
+      <ul class="clean">
+        <li>Telas de <strong>Login</strong> e <strong>Cadastro</strong> com validação e botão de mostrar/ocultar senha.</li>
+        <li><strong>Contexto de autenticação</strong> global que mantém o usuário logado mesmo após recarregar a página.</li>
+        <li><strong>Proteção de rotas</strong>: quem não está logado é redirecionado para o login.</li>
+        <li>Disparo dos registros de <strong>entrada e saída</strong> no histórico do sistema.</li>
+      </ul>
+      <div class="files" style="margin-top:12px">
+        <span class="file">App.tsx</span>
+        <span class="file">contexts/AuthContext.tsx</span>
+        <span class="file">components/PrivateRoute.tsx</span>
+        <span class="file">pages/Login.tsx</span>
+        <span class="file">pages/Register.tsx</span>
+        <span class="file">types/user.ts</span>
+      </div>
+    </div>
+
+    <div class="nav">
+      <a href="index.html">← Todas as demonstrações</a>
+      <a href="integrante-2-produtos.html">Integrante 2 · Produtos →</a>
+    </div>
+    <footer>AMA · Amigos Mãos Abertas — Demonstração ao vivo · Integrante 1</footer>
+  </div>
+
+  <script>
+  (function(){
+    var src = "(\\/\\/.*)|(`(?:\\\\.|[^`\\\\])*`|\"(?:\\\\.|[^\"\\\\])*\"|'(?:\\\\.|[^'\\\\])*')|(\\b\\d+(?:\\.\\d+)?\\b)|(\\b(?:const|let|var|function|return|if|else|for|of|in|new|import|from|export|default|type|interface|extends|implements|class|true|false|null|undefined|void|async|await|typeof|instanceof|this|throw|try|catch|switch|case|break|continue)\\b)";
+    function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+    function hl(line){
+      var re=new RegExp(src,"g"),out="",last=0,m;
+      while((m=re.exec(line))){
+        out+=esc(line.slice(last,m.index));
+        if(m[1])out+='<span class="cm">'+esc(m[1])+'</span>';
+        else if(m[2])out+='<span class="st">'+esc(m[2])+'</span>';
+        else if(m[3])out+='<span class="nu">'+esc(m[3])+'</span>';
+        else if(m[4])out+='<span class="kw">'+esc(m[4])+'</span>';
+        last=re.lastIndex;
+        if(m.index===re.lastIndex)re.lastIndex++;
+      }
+      out+=esc(line.slice(last));
+      return out===""?"&nbsp;":out;
+    }
+    document.querySelectorAll("script.src").forEach(function(s){
+      var raw=s.textContent.replace(/^\n+/,"").replace(/\s+$/,"");
+      var code=raw.split("\n").map(function(l){return '<span class="line">'+hl(l)+'</span>';}).join("");
+      var wrap=document.createElement("div");wrap.className="code";
+      wrap.innerHTML='<div class="bar"><span class="dots"><i></i><i></i><i></i></span><span class="fname">'+s.getAttribute("data-file")+'</span></div><pre><code>'+code+'</code></pre>';
+      s.parentNode.insertBefore(wrap,s);
+      s.parentNode.removeChild(s);
+    });
+  })();
+  </script>
+</body>
+</html>
