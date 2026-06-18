@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<title>Sistema AMA — Divisão de Tarefas por Integrante</title>
+<style>
+  @page { size: A4; margin: 14mm 14mm; }
+  :root{
+    --blue:#1d4ed8;--blue-dark:#1e3a8a;--amber:#f59e0b;
+    --ink:#1f2937;--muted:#6b7280;--line:#e5e7eb;--soft:#eff6ff;
+  }
+  *{box-sizing:border-box}
+  body{font-family:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;color:var(--ink);margin:0;line-height:1.5;font-size:12px}
+  .head{background:linear-gradient(135deg,#1e3a8a,#1d4ed8 65%,#2563eb);color:#fff;padding:22px 26px;border-radius:14px;position:relative;overflow:hidden}
+  .head::after{content:"";position:absolute;right:-50px;top:-50px;width:170px;height:170px;border-radius:50%;background:rgba(245,158,11,.20)}
+  .head .ey{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:#dbeafe}
+  .head h1{margin:6px 0 4px;font-size:23px;letter-spacing:-.02em}
+  .head p{margin:0;color:#dbeafe;font-size:12.5px;max-width:560px}
+  .head .accent{width:48px;height:4px;background:var(--amber);border-radius:99px;margin-top:12px}
+  .intro{margin:16px 2px 4px;color:#374151;font-size:12px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:12px}
+  .card{border:1px solid #e3e8f2;border-left:4px solid var(--blue);border-radius:10px;padding:11px 14px;background:#fff;break-inside:avoid}
+  .card .top{display:flex;align-items:center;gap:9px;margin-bottom:6px}
+  .num{flex:none;width:24px;height:24px;border-radius:7px;background:var(--blue);color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center}
+  .who{font-weight:700;font-size:13.5px;color:var(--blue-dark);line-height:1.15}
+  .who small{display:block;font-weight:600;font-size:10.5px;color:var(--amber);text-transform:uppercase;letter-spacing:.04em;margin-top:1px}
+  ul{margin:4px 0 6px;padding-left:16px}
+  li{margin:2.5px 0;font-size:11px;color:#374151}
+  .files{font-family:Consolas,ui-monospace,monospace;font-size:9.5px;color:#64748b;border-top:1px dashed #e2e8f0;padding-top:5px;margin-top:4px}
+  .foot{margin-top:14px;text-align:center;color:var(--muted);font-size:10.5px;border-top:1px solid var(--line);padding-top:9px}
+  .tag{display:inline-block;background:var(--soft);color:var(--blue-dark);font-weight:600;font-size:10px;padding:2px 8px;border-radius:99px;margin:0 3px}
+</style>
+</head>
+<body>
+  <div class="head">
+    <div class="ey">AMA · Amigos Mãos Abertas</div>
+    <h1>Sistema AMA — Divisão de Tarefas por Integrante</h1>
+    <p>Sistema web de gestão de estoque e financeiro para uma ONG. Resumo do que cada integrante desenvolveu.</p>
+    <div class="accent"></div>
+  </div>
+
+  <div class="intro">
+    <strong>Stack:</strong>
+    <span class="tag">React 19</span><span class="tag">TypeScript</span><span class="tag">Vite</span><span class="tag">Tailwind CSS</span><span class="tag">React Router</span>
+    — projeto em 7 módulos, com persistência local (localStorage), divididos entre 9 integrantes.
+  </div>
+
+  <div class="grid">
+
+    <div class="card">
+      <div class="top"><span class="num">1</span><span class="who">Gabriel Azevedo<small>Autenticação &amp; Acesso</small></span></div>
+      <ul>
+        <li>Telas de <b>login e cadastro</b> com validação e mostrar/ocultar senha.</li>
+        <li><b>Contexto de autenticação</b> que mantém o usuário logado após o F5.</li>
+        <li><b>Proteção de rotas</b>: sem login, redireciona para o login.</li>
+      </ul>
+      <div class="files">AuthContext.tsx · PrivateRoute.tsx · Login.tsx · Register.tsx</div>
+    </div>
+
+    <div class="card">
+      <div class="top"><span class="num">2</span><span class="who">Igor<small>Produtos (Estoque)</small></span></div>
+      <ul>
+        <li>Cadastro, edição e exclusão de produtos com <b>formulário dinâmico</b>.</li>
+        <li>Busca, filtros por categoria/status e ordenação.</li>
+        <li>Cálculo automático do <b>status de validade</b> e do valor em risco.</li>
+      </ul>
+      <div class="files">useProducts.ts · productUtils.ts · ProductForm/Card/List.tsx</div>
+    </div>
+
+    <div class="card">
+      <div class="top"><span class="num">3</span><span class="who">Lucas<small>Financeiro</small></span></div>
+      <ul>
+        <li>Lançamento de <b>receitas, despesas e doações</b>.</li>
+        <li>Cálculo de <b>saldo</b>, totais e fluxo dos últimos 6 meses.</li>
+        <li>Gráficos de <b>barras</b> (fluxo) e <b>pizza</b> (despesas por categoria).</li>
+      </ul>
+      <div class="files">useFinance.ts · BudgetPanel.tsx · types/finance.ts</div>
+    </div>
+
+    <div class="card">
+      <div class="top"><span class="num">4</span><span class="who">Paulo<small>Movimentação de Estoque</small></span></div>
+      <ul>
+        <li>Registro de <b>entradas e saídas</b> com motivo e parte envolvida.</li>
+        <li><b>Ajuste automático</b> da quantidade do produto a cada movimentação.</li>
+        <li>Validação que impede saída maior que o estoque; exclusão reverte o efeito.</li>
+      </ul>
+      <div class="files">StockMovement.tsx · useMovements.ts · storage.ts</div>
+    </div>
+
+    <div class="card">
+      <div class="top"><span class="num">5</span><span class="who">Pedro<small>Histórico &amp; Auditoria</small></span></div>
+      <ul>
+        <li>Linha do tempo de atividades <b>agrupada por dia</b>.</li>
+        <li>Registro <b>automático</b> de login, criação, edição e exclusão.</li>
+        <li>Comparação <b>campo a campo</b> nas edições (de → para) e sino de alertas.</li>
+      </ul>
+      <div class="files">ActivityLog.tsx · useActivities.ts · NotificationBell.tsx</div>
+    </div>
+
+    <div class="card">
+      <div class="top"><span class="num">6</span><span class="who">Cayo<small>Relatórios &amp; Dashboard</small></span></div>
+      <ul>
+        <li>Cards de <b>indicadores</b> do estoque e <b>visão geral</b> consolidada.</li>
+        <li>Painel de relatórios com filtros.</li>
+        <li>Exportação para <b>CSV/Excel</b> e <b>PDF</b> (via impressão, sem biblioteca).</li>
+      </ul>
+      <div class="files">Dashboard.tsx · Overview.tsx · ReportPanel.tsx · exportUtils.ts</div>
+    </div>
+
+    <div class="card">
+      <div class="top"><span class="num">7</span><span class="who">Gabriel Abreu<small>Gestão de Usuários</small></span></div>
+      <ul>
+        <li>Listagem e <b>gerenciamento de contas</b>.</li>
+        <li>Papéis de <b>administrador</b> e <b>voluntário</b>, com troca de papel.</li>
+        <li>Aba restrita a admins e proteção do admin padrão (senha nunca exposta).</li>
+      </ul>
+      <div class="files">UserManagement.tsx · useUsers.ts · storage.ts</div>
+    </div>
+
+    <div class="card">
+      <div class="top"><span class="num">8</span><span class="who">João Pedro<small>Design System</small></span></div>
+      <ul>
+        <li>UI reutilizável: <b>Toast, Modal, ConfirmDialog, EmptyState</b>.</li>
+        <li>Identidade visual (Logo), navegação inferior (mobile) e rodapé.</li>
+        <li><b>Paleta e tokens</b> (Tailwind) que padronizam todo o sistema.</li>
+      </ul>
+      <div class="files">ui/Toast · Modal · ConfirmDialog · Logo · BottomNav</div>
+    </div>
+
+    <div class="card">
+      <div class="top"><span class="num">9</span><span class="who">Yago<small>Infraestrutura &amp; Dados</small></span></div>
+      <ul>
+        <li>Camada de dados (storage.ts) com o <b>CRUD de todas as entidades</b>.</li>
+        <li><b>Dados de exemplo</b> (47 produtos, 32 transações) e migração de versão.</li>
+        <li>Ponto de entrada e configuração de <b>build</b> (Vite, TypeScript, ESLint).</li>
+      </ul>
+      <div class="files">storage.ts · main.tsx · vite.config.ts · tsconfig</div>
+    </div>
+
+  </div>
+
+  <div class="foot">Sistema AMA — Amigos Mãos Abertas · 9 integrantes · Documento gerado a partir das apresentações de funcionamento do projeto</div>
+</body>
+</html>
