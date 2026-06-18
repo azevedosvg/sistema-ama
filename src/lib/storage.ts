@@ -510,15 +510,23 @@ function normalizeUser(u: Partial<User> & { email: string; password: string }): 
 }
 
 function readUsers(): User[] {
-  const stored = (JSON.parse(localStorage.getItem(KEYS.users) ?? "[]") as User[]).map(normalizeUser);
-  const storedEmails = new Set(stored.map((u) => u.email));
-  const missing = ALL_SEED_USERS.filter((u) => !storedEmails.has(u.email));
-  if (missing.length > 0) {
-    const merged = [...missing, ...stored];
-    localStorage.setItem(KEYS.users, JSON.stringify(merged));
-    return merged;
+  const raw = localStorage.getItem(KEYS.users);
+  if (raw) {
+    const stored = (JSON.parse(raw) as User[]).map(normalizeUser);
+    // Garante que o admin padrão sempre exista — ele é permanente e não pode
+    // ser removido, então nunca corremos o risco de ficar sem acesso de admin.
+    if (!stored.some((u) => u.email === DEFAULT_ADMIN.email)) {
+      const merged = [DEFAULT_ADMIN, ...stored];
+      localStorage.setItem(KEYS.users, JSON.stringify(merged));
+      return merged;
+    }
+    return stored;
   }
-  return stored;
+  // Primeira execução: popula com os usuários de exemplo. Depois disso, as
+  // exclusões valem de verdade (não re-inserimos os usuários removidos).
+  const seeded = ALL_SEED_USERS.map(normalizeUser);
+  localStorage.setItem(KEYS.users, JSON.stringify(seeded));
+  return seeded;
 }
 
 function writeUsers(users: User[]): void {
